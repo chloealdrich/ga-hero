@@ -1,0 +1,350 @@
+/* G&A Brand System tokens */
+:root {
+  --anchor: #003973;
+  --clarity: #0068de;
+  --ink: #212121;
+  --graphite: #474747;
+  --line: #d6d6d6;
+  --clarity-10: #e6f0fc;
+  --white: #ffffff;
+
+  --font: runda, "Figtree", system-ui, sans-serif;
+
+  /* G&A Dashboard System motion */
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --t-fast: 140ms;
+  --t-med: 240ms;
+}
+
+html, body { margin: 0; background: var(--white); }
+html { overscroll-behavior-y: none; }
+body { font-family: var(--font); color: var(--ink); }
+
+/* ---------- Scroll container + pinned section ---------- */
+
+.hero-scroll {
+  position: relative;
+  height: 600vh;
+}
+
+/* One scroll target per year, spread evenly over the scrollable span.
+   hero.js settles scrolling onto these once the user stops. */
+.hero-snap-point {
+  position: absolute;
+  left: 0;
+  top: calc(var(--i) * (100% - 100vh) / var(--hero-steps));
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.hero-scroll.is-static .hero-snap-point { display: none; }
+
+.hero {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font);
+}
+
+/* Reduced motion: no pinning, end state only. */
+.hero-scroll.is-static { height: auto; }
+.hero-scroll.is-static .hero { position: relative; }
+.hero-scroll.is-static * { transition: none !important; }
+
+/* The 1440 × 900 design frame, scaled to fit the viewport by hero.js (--hero-scale). */
+.hero__stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1440px;
+  height: 900px;
+  transform: translate(-50%, -50%) scale(var(--hero-scale, 1));
+  transform-origin: center;
+}
+
+/* ---------- Chart ---------- */
+
+.hero__chart {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+}
+
+.hero__chart svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font);
+}
+
+/* Invisible hover targets over each event's points on the line. */
+.hero__hits circle,
+.hero__hits rect {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.hero__stalk {
+  opacity: 0;
+  transition: opacity var(--t-med) var(--ease);
+}
+.hero__stalk.is-active { opacity: 1; }
+
+/* ---------- Header ---------- */
+
+.hero__logo {
+  position: absolute;
+  left: 48px;
+  top: 36px;
+  width: 280px;
+  height: auto;
+}
+
+.hero__title {
+  position: absolute;
+  left: 48px;
+  top: 160px;
+  width: 620px;
+  margin: 0;
+  font-size: 48px;
+  line-height: 56px;
+  font-weight: 300;
+  color: var(--anchor);
+}
+
+.hero__callout {
+  position: absolute;
+  right: 48px;
+  top: 160px;
+  display: grid;
+  grid-template-columns: auto 300px;
+  column-gap: 24px;
+  align-items: center;
+}
+
+.hero__callout-year {
+  font-size: 72px;
+  line-height: 72px;
+  font-weight: 300;
+  color: var(--anchor);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero__callout-blurb {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink);
+}
+
+/* ---------- Overlay: line labels, year pill, event cards, event row ---------- */
+
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-line-label {
+  position: absolute;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+/* X-axis year buttons, centred under each year; the current year is the pill. */
+.hero-year {
+  position: absolute;
+  top: 762px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 400;
+  color: var(--graphite);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--t-med) var(--ease),
+    color var(--t-fast) var(--ease),
+    background-color var(--t-fast) var(--ease),
+    visibility 0s linear var(--t-med);
+}
+.hero-year.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.hero-year:hover { color: var(--anchor); background: var(--clarity-10); }
+.hero-year.is-current {
+  background: var(--clarity-10);
+  font-weight: 700;
+  color: var(--anchor);
+  cursor: default;
+}
+.hero-year:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
+.hero-scroll.is-static .hero-year { cursor: default; }
+
+.hero-card {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(0, 24, 48, .12), 0 12px 32px rgba(0, 24, 48, .12);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px) scale(.98);
+  transition:
+    opacity var(--t-med) var(--ease),
+    transform var(--t-med) var(--ease),
+    visibility 0s linear var(--t-med);
+}
+
+.hero-card.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.hero-card__eyebrow {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--clarity);
+}
+
+.hero-card__title {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+  color: var(--anchor);
+}
+
+.hero-card__body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink);
+}
+
+/* Event row items are buttons: hover or focus previews a past event's card. */
+.hero-event {
+  position: absolute;
+  top: 798px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--graphite);
+  white-space: nowrap;
+  cursor: default;
+  pointer-events: auto;
+  transform: translateX(-5px); /* centre the 10px marker on the anchor x */
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--t-med) var(--ease),
+    color var(--t-fast) var(--ease),
+    visibility 0s linear var(--t-med);
+}
+.hero-event.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.hero-event:hover,
+.hero-event.is-previewed { color: var(--anchor); }
+.hero-event:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
+
+.hero-event__marker {
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 2px solid var(--anchor);
+  background: var(--white);
+  transition: background-color var(--t-fast) var(--ease);
+}
+.hero-event.is-active .hero-event__marker { background: var(--anchor); }
+
+/* ---------- Footer ---------- */
+
+.hero__source {
+  position: absolute;
+  left: 48px;
+  bottom: 24px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--graphite);
+}
+
+/* Text-and-arrow CTA, middle right of the plot; only shown before scrolling starts. */
+.hero__cta {
+  position: absolute;
+  right: 48px;
+  top: 540px;               /* centred on the plot's vertical middle (y 562) */
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  color: var(--clarity);
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  border-radius: 4px;
+  transition:
+    color var(--t-fast) var(--ease),
+    opacity var(--t-med) var(--ease),
+    visibility 0s linear 0s;
+}
+.hero__cta:hover { color: var(--anchor); }
+.hero__cta:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
+
+.hero__cta svg { animation: hero-cta-nudge 1.6s var(--ease) infinite; }
+
+.hero__cta.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--t-med) var(--ease),
+    visibility 0s linear var(--t-med);
+}
+
+@keyframes hero-cta-nudge {
+  0%, 50%, 100% { transform: translateX(0); }
+  25% { transform: translateX(6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__cta svg { animation: none; }
+}

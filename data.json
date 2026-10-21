@@ -1,0 +1,67 @@
+{
+  "source": "Governance & Accountability Institute, Inc. 2026",
+  "years": [2011, 2025],
+  "methodologyBreak": { "after": 2023, "before": 2024 },
+  "series": [
+    {
+      "id": "sp500",
+      "color": "#0081fb",
+      "labelEarly": "S&P 500",
+      "labelFull": "Largest Half by Market Cap (S&P 500)",
+      "fullLabelFrom": 2018,
+      "values": { "2011": 20, "2012": 53, "2013": 72, "2014": 75, "2015": 81, "2016": 82, "2017": 85, "2018": 86, "2019": 90, "2020": 92, "2021": 96, "2022": 98.2, "2023": 98.6, "2024": 97.8, "2025": 93.9 }
+    },
+    {
+      "id": "russell1000",
+      "color": "#08a4a2",
+      "labelEarly": "Full Russell 1000 Companies",
+      "labelFull": "Full Russell 1000 Companies",
+      "fullLabelFrom": 2018,
+      "values": { "2018": 60, "2019": 65, "2020": 70, "2021": 81, "2022": 90, "2023": 93, "2024": 91.1, "2025": 86.0 }
+    },
+    {
+      "id": "smallestHalf",
+      "color": "#990f73",
+      "labelEarly": "Smallest Half by Market Cap",
+      "labelFull": "Smallest Half by Market Cap",
+      "fullLabelFrom": 2018,
+      "values": { "2018": 34, "2019": 39, "2020": 49, "2021": 68, "2022": 82, "2023": 87, "2024": 84.5, "2025": 78.2 }
+    }
+  ],
+  "events": [
+    {
+      "id": "research-begins",
+      "year": 2011,
+      "anchor": { "type": "point", "series": "sp500", "year": 2011 },
+      "eyebrow": "2011",
+      "title": "Research begins",
+      "body": "[Draft] G&A Institute starts its annual analysis of S&P 500 sustainability reporting.",
+      "draft": true
+    },
+    {
+      "id": "coverage-expanded",
+      "year": 2018,
+      "anchor": { "type": "split", "year": 2018 },
+      "eyebrow": "2018",
+      "title": "Coverage expanded",
+      "body": "[Draft] From 2018, G&A also tracks the full Russell 1000 and its smallest half by market cap.",
+      "draft": true
+    },
+    {
+      "id": "methodology-updated",
+      "year": 2024,
+      "anchor": { "type": "gap", "between": [2023, 2024] },
+      "eyebrow": "2024",
+      "title": "Methodology updated",
+      "body": "From 2024, only reports published within the year are counted (previously a two-year window).",
+      "draft": false
+    }
+  ],
+  "yearBlurbs": {
+    "2011": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+    "2018": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
+    "2024": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis aute irure dolor in reprehenderit in voluptate velit esse.",
+    "2025": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Excepteur sint occaecat cupidatat non proident, sunt in culpa.",
+    "_note": "Placeholder copy. Add one blurb per year 2011–2025; the call-out shows the blurb for the current year."
+  }
+}
