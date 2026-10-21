@@ -2,7 +2,7 @@
 
 .sector {
   --sector-fill: #f4f4f4;
-  --t-fill: 320ms;   /* dot colour and fade duration; FADE_MS in sector.js matches */
+  --t-fill: 240ms;   /* dot colour and fade duration; FADE_MS in sector.js matches */
 
   position: relative;
   height: 100vh;
@@ -236,6 +236,33 @@
     background-color var(--t-fill) var(--ease),
     opacity var(--t-fill) var(--ease);
 }
+
+/* Year-over-year change in non-reporters, centred on a circle's top-left edge.
+   sector.js sets the fill from the data colours; Graphite when unchanged. */
+.sector-delta {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 7px 0 6px;
+  border: 1.5px solid var(--white);
+  border-radius: 999px;
+  background: var(--graphite);
+  color: var(--white);
+  box-shadow: 0 1px 2px rgba(0, 24, 48, .16);
+  font-size: 11px;
+  line-height: 1;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--t-med) var(--ease);
+}
+.sector-delta.is-visible { opacity: 1; }
 
 .sector-target {
   position: absolute;

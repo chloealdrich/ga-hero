@@ -25,10 +25,16 @@
   const SPLIT_CARD_MIN_TOP = 330; // below the intro text
   const DIVIDER_X = 720;
   // Dot motion (colour and opacity only; keep FADE_MS in step with --t-fill in sector.css).
-  const FADE_MS = 320;
-  const SWEEP_MS = 360;           // a colour change travels across the changed band
-  const OUTWARD_MS = 360;         // fades spread from a circle's centre to its edge
-  const PLAY_STEP_MS = 1400;      // per year when playing: the dot animation (~1s) plus a beat to read it
+  const FADE_MS = 240;
+  const SWEEP_MS = 220;           // a colour change travels across the changed band
+  const OUTWARD_MS = 220;         // fades spread from a circle's centre to its edge
+  const PLAY_STEP_MS = 700;       // per year when playing; each year's dot animation finishes in ~460ms
+  const DELTA_HOLD_MS = 2500;     // change bubbles fade this long after the last year change
+  // Phosphor arrow-up / arrow-down (Bold) for the change bubbles.
+  const ARROWS = {
+    up: '<path d="M208.49,120.49a12,12,0,0,1-17,0L140,69V216a12,12,0,0,1-24,0V69L64.49,120.49a12,12,0,0,1-17-17l72-72a12,12,0,0,1,17,0l72,72A12,12,0,0,1,208.49,120.49Z"/>',
+    down: '<path d="M208.49,152.49l-72,72a12,12,0,0,1-17,0l-72-72a12,12,0,0,1,17-17L116,187V40a12,12,0,0,1,24,0V187l51.51-51.52a12,12,0,0,1,17,17Z"/>',
+  };
 
   // Reference sector centres (2025) by sector id. Full view from the spec table;
   // split views read from the S3 frame. Packing starts here for every year;
@@ -102,6 +108,8 @@
   const sectorsUI = [];   // per sector: { layer, circles, dots: Map, targets, prevNon }
   let pendingFadeIns = [];
   let playTimer = 0;
+  let deltasOn = false;   // change bubbles showing (after a year change)
+  let deltaTimer = 0;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   fetch('sector-data.json')
@@ -308,7 +316,15 @@
       primary.addEventListener('focus', () => { focused = i; updateActive(); });
       primary.addEventListener('blur', () => { if (focused === i) focused = null; updateActive(); });
 
-      sectorsUI[i] = { layer, circles, dots: new Map(), targets: { primary, twin } };
+      // Year-over-year change in non-reporters, one bubble per circle (decorative:
+      // the counts themselves are in the card, aria-label and table).
+      const deltas = {};
+      [FULL, ...HALVES].forEach(g => {
+        deltas[g] = el('div', 'sector-delta', layer);
+        deltas[g].setAttribute('aria-hidden', 'true');
+      });
+
+      sectorsUI[i] = { layer, circles, deltas, dots: new Map(), targets: { primary, twin } };
     });
   }
 
@@ -341,7 +357,34 @@
     if (y === year) return;
     year = y;
     slider.value = y;
+    // Show the change bubbles while the year is moving; fade them once it settles.
+    deltasOn = true;
+    clearTimeout(deltaTimer);
+    deltaTimer = setTimeout(() => { deltasOn = false; renderDeltas(); }, DELTA_HOLD_MS);
     render();
+  }
+
+  // ---- Year-over-year change bubbles ----
+
+  function renderDeltas() {
+    const prev = years[years.indexOf(year) - 1];
+    sectorsUI.forEach((ui, i) => Object.entries(ui.deltas).forEach(([g, b]) => {
+      const show = deltasOn && prev !== undefined && (view === 'full' ? g === FULL : g !== FULL);
+      b.classList.toggle('is-visible', show);
+      if (!show) return;
+      const d = counts(g, i).non - counts(g, i, prev).non;
+      // Solid fill: more non-reporters in the non-reporter colour, fewer in the
+      // group's reporter colour, no change in Graphite (CSS). Text and arrow are white.
+      const kind = d > 0 ? 'up' : d < 0 ? 'down' : 'flat';
+      b.style.background = kind === 'up' ? data.nonReporterColor
+        : kind === 'down' ? data.groups[g].reporterColor : '';
+      b.innerHTML = (kind === 'flat' ? '' : `<svg width="10" height="10" viewBox="0 0 256 256" fill="currentColor">${ARROWS[kind]}</svg>`) +
+        `<span>${d > 0 ? '+' : d < 0 ? '−' : ''}${Math.abs(d)}</span>`;
+      // Top-left of the circle, on its edge (45°).
+      const c = layouts[g][year][i];
+      b.style.left = `${c.x - c.r * Math.SQRT1_2}px`;
+      b.style.top = `${c.y - c.r * Math.SQRT1_2}px`;
+    }));
   }
 
   function render() {
@@ -349,6 +392,7 @@
     renderText();
     pendingFadeIns = [];
     data.sectors.forEach((s, i) => renderSector(i));
+    renderDeltas();
     renderHighlight();
     renderCard();
 
