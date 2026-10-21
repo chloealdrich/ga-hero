@@ -8,17 +8,17 @@
     "smallestHalf + sp500 = russell1000 for every sector and year."
   ],
   "sectors": [
-    { "id": "communications", "name": "Communications", "icon": "broadcast" },
-    { "id": "consumer-discretionary", "name": "Consumer Discretionary", "icon": "shopping-bag" },
+    { "id": "communications", "name": "Communications", "icon": "cell-tower" },
+    { "id": "consumer-discretionary", "name": "Consumer Discretionary", "icon": "shopping-bag-open" },
     { "id": "consumer-staples", "name": "Consumer Staples", "icon": "bread" },
-    { "id": "energy", "name": "Energy", "icon": "lightning" },
-    { "id": "financials", "name": "Financials", "icon": "money" },
+    { "id": "energy", "name": "Energy", "icon": "battery-charging-vertical" },
+    { "id": "financials", "name": "Financials", "icon": "money-wavy" },
     { "id": "health-care", "name": "Health Care", "icon": "heartbeat" },
     { "id": "industrials", "name": "Industrials", "icon": "factory" },
-    { "id": "information-technology", "name": "Information Technology", "icon": "cpu" },
-    { "id": "materials", "name": "Materials", "icon": "cube" },
+    { "id": "information-technology", "name": "Information Technology", "icon": "circuitry" },
+    { "id": "materials", "name": "Materials", "icon": "log" },
     { "id": "real-estate", "name": "Real Estate", "icon": "buildings" },
-    { "id": "utilities", "name": "Utilities", "icon": "plug" }
+    { "id": "utilities", "name": "Utilities", "icon": "pipe" }
   ],
   "groups": {
     "russell1000": {
