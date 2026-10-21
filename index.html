@@ -99,12 +99,18 @@
     <div class="sector__targets" data-sector-targets></div>
     <div class="sector-card" role="tooltip" id="sector-card" data-sector-card></div>
 
-    <div class="sector__slider">
-      <label for="sector-year">Year</label>
-      <div class="sector__slider-track">
-        <input id="sector-year" type="range" step="1" data-sector-slider>
-        <div class="sector__slider-years" aria-hidden="true" data-sector-years></div>
+    <!-- Stepped year slider: a native range input (invisible, on top) drives the
+         drawn line, year dots and labels, so drag, click and keyboard all work. -->
+    <div class="year-slider">
+      <label class="visually-hidden" for="sector-year">Year</label>
+      <input class="year-slider__input" id="sector-year" type="range" step="1" data-sector-slider>
+      <div class="year-slider__rail" aria-hidden="true">
+        <span class="year-slider__line"></span>
+        <span class="year-slider__fill" data-slider-fill></span>
+        <div data-slider-ticks></div>
+        <span class="year-slider__thumb" data-slider-thumb></span>
       </div>
+      <div class="year-slider__years" aria-hidden="true" data-sector-years></div>
     </div>
 
     <p class="sector__source" data-sector-source></p>

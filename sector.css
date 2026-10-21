@@ -2,7 +2,7 @@
 
 .sector {
   --sector-fill: #f4f4f4;
-  --t-fill: 320ms;   /* dots fill in with colour after a view or year change */
+  --t-fill: 320ms;   /* dot colour and fade duration; FADE_MS in sector.js matches */
 
   position: relative;
   height: 100vh;
@@ -215,6 +215,7 @@
   border: 2px solid transparent;
   background: var(--sector-fill);
   transition:
+    opacity var(--t-fill) var(--ease),
     background-color var(--t-med) var(--ease),
     border-color var(--t-med) var(--ease);
 }
@@ -230,12 +231,10 @@
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  transition: background-color var(--t-fill) var(--ease);
-}
-/* Set for one frame by sector.js: dots start as the circle fill, then fill in. */
-.sector.is-refilling .sector-dot {
-  background-color: var(--sector-fill) !important;
-  transition: none !important;
+  /* sector.js staggers these with an inline transition-delay */
+  transition:
+    background-color var(--t-fill) var(--ease),
+    opacity var(--t-fill) var(--ease);
 }
 
 .sector-target {
@@ -341,51 +340,103 @@
 
 /* ---------- Year slider ---------- */
 
-.sector__slider {
+/*
+ * A line with one dot per year: filled up to the selected year, a large dot on it,
+ * smaller year labels underneath. Every mark sits at --f (0–1) along the line,
+ * inset by half the native thumb so it lines up with where the input puts a year.
+ */
+.year-slider {
+  --inset: 12px;          /* half the native thumb width below */
+
   position: absolute;
   left: 48px;
   right: 48px;
   top: 784px;
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
+  height: 48px;
 }
 
-.sector__slider label {
-  flex: none;
-  padding-top: 2px;
-  font-size: 13px;
-  line-height: 1.3;
-  font-weight: 500;
-  color: var(--graphite);
-}
-
-.sector__slider-track {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.sector__slider input {
+.year-slider__input {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
   width: 100%;
   height: 24px;
   margin: 0;
-  accent-color: var(--clarity);
+  opacity: 0;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
 }
-.sector__slider input:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
+.year-slider__input::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; }
+.year-slider__input::-moz-range-thumb { width: 24px; height: 24px; border: 0; }
 
-.sector__slider-years {
-  display: flex;
-  justify-content: space-between;
-  padding: 0 2px;
+.year-slider__rail {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 24px;
+}
+
+.year-slider__line,
+.year-slider__fill {
+  position: absolute;
+  top: 11px;
+  left: var(--inset);
+  height: 2px;
+}
+.year-slider__line {
+  right: var(--inset);
+  background: var(--line);
+}
+.year-slider__fill {
+  width: calc((100% - 2 * var(--inset)) * var(--f, 0));
+  background: var(--anchor);
+  transition: width var(--t-med) var(--ease);
+}
+
+.year-slider__tick,
+.year-slider__thumb {
+  position: absolute;
+  top: 12px;
+  left: calc(var(--inset) + (100% - 2 * var(--inset)) * var(--f, 0));
+  border-radius: 999px;
+  transform: translate(-50%, -50%);
+}
+.year-slider__tick {
+  width: 10px;
+  height: 10px;
+  background: var(--line);
+  transition: background-color var(--t-med) var(--ease);
+}
+.year-slider__tick.is-passed { background: var(--anchor); }
+.year-slider__thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--anchor);
+  transition: left var(--t-med) var(--ease);
+}
+.year-slider__input:focus-visible + .year-slider__rail .year-slider__thumb {
+  outline: 3px solid var(--anchor);
+  outline-offset: 2px;
+}
+
+.year-slider__years {
+  position: absolute;
+  inset: 30px 0 auto 0;
+  height: 16px;
+}
+.year-slider__years span {
+  position: absolute;
+  left: calc(var(--inset) + (100% - 2 * var(--inset)) * var(--f, 0));
+  transform: translateX(-50%);
   font-size: 12px;
   line-height: 16px;
   color: var(--graphite);
   font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: color var(--t-med) var(--ease);
 }
-.sector__slider-years .is-current { font-weight: 700; color: var(--anchor); }
+.year-slider__years .is-current { font-weight: 700; color: var(--anchor); }
 
 /* ---------- Footer ---------- */
 

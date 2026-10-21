@@ -24,6 +24,10 @@
   const SPLIT_CARD_TOP = 530;     // preferred; moved if it would cover a highlighted circle
   const SPLIT_CARD_MIN_TOP = 330; // below the intro text
   const DIVIDER_X = 720;
+  // Dot motion (colour and opacity only; keep FADE_MS in step with --t-fill in sector.css).
+  const FADE_MS = 320;
+  const SWEEP_MS = 360;           // a colour change travels across the changed band
+  const OUTWARD_MS = 360;         // fades spread from a circle's centre to its edge
 
   // Reference sector centres (2025) by sector id. Full view from the spec table;
   // split views read from the S3 frame. Packing starts here for every year;
@@ -80,6 +84,9 @@
   const card = $('[data-sector-card]');
   const slider = $('[data-sector-slider]');
   const yearsEl = $('[data-sector-years]');
+  const ticksEl = $('[data-slider-ticks]');
+  const sliderFill = $('[data-slider-fill]');
+  const sliderThumb = $('[data-slider-thumb]');
   const legend = $('[data-sector-legend]');
   const table = $('[data-sector-table]');
 
@@ -90,7 +97,9 @@
   let active = null;      // index of the highlighted sector: hovered, else focused
   let hovered = null;
   let focused = null;
-  const sectorsUI = [];   // per sector: { layer, circles, dots: Map, targets }
+  const sectorsUI = [];   // per sector: { layer, circles, dots: Map, targets, prevNon }
+  let pendingFadeIns = [];
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   fetch('sector-data.json')
     .then(r => {
@@ -193,37 +202,27 @@
   }
 
   /*
-   * Every dot has a stable identity: sector, half, reporter or not, and its index
-   * within that. The halves sum to the full index, so each dot has a place in
-   * both views. Non-reporters take the first spiral indexes in both.
+   * A dot is keyed by its circle (the view's group) and its spiral index, so a year
+   * change keeps every dot in its place: only the boundary between non-reporters
+   * (the first indexes, at the centre) and reporters moves, and outer dots come and
+   * go. A view change swaps one set of circles for the other.
    */
   function dotTargets(i) {
-    const s = counts('smallestHalf', i);
-    const l = counts('sp500', i);
     const out = [];
-    if (view === 'full') {
-      const c = layouts[FULL][year][i];
-      const n = s.total + l.total;
-      let k = 0;
-      // Full-view order: non-reporters (smallest, then S&P), then reporters (same).
-      [['smallestHalf', s], ['sp500', l]].forEach(([h, ct]) => {
-        for (let j = 0; j < ct.non; j++) out.push({ key: `${h}|n|${j}`, k: k++, non: true, half: h });
-      });
-      [['smallestHalf', s], ['sp500', l]].forEach(([h, ct]) => {
-        for (let j = 0; j < ct.rep; j++) out.push({ key: `${h}|r|${j}`, k: k++, non: false, half: h });
-      });
-      out.forEach(d => { [d.x, d.y] = spiral(c.x, c.y, d.k, n); });
-    } else {
-      HALVES.forEach(h => {
-        const ct = h === 'sp500' ? l : s;
-        const c = layouts[h][year][i];
-        for (let j = 0; j < ct.non; j++) out.push({ key: `${h}|n|${j}`, k: j, non: true, half: h, c, n: ct.total });
-        for (let j = 0; j < ct.rep; j++) out.push({ key: `${h}|r|${j}`, k: ct.non + j, non: false, half: h, c, n: ct.total });
-      });
-      out.forEach(d => { [d.x, d.y] = spiral(d.c.x, d.c.y, d.k, d.n); });
-    }
+    (view === 'full' ? [FULL] : HALVES).forEach(g => {
+      const c = layouts[g][year][i];
+      const { total, non } = counts(g, i);
+      const maxRad = DOT_SPACING * Math.sqrt(Math.max(total - 1, 0) + 0.5);
+      for (let k = 0; k < total; k++) {
+        const [x, y] = spiral(c.x, c.y, k, total);
+        out.push({ key: `${g}|${k}`, g, k, x, y, non: k < non, nonCount: non, rad: DOT_SPACING * Math.sqrt(k + 0.5), maxRad });
+      }
+    });
     return out;
   }
+
+  // Delay for a fade that spreads from the centre of a circle to its edge.
+  const outwardDelay = (rad, maxRad) => (maxRad ? OUTWARD_MS * rad / maxRad : 0);
 
   // ---- Setup ----
 
@@ -244,16 +243,19 @@
     slider.min = years[0];
     slider.max = years[years.length - 1];
     slider.value = year;
-    years.forEach(y => {
-      const span = document.createElement('span');
-      span.textContent = y;
-      span.dataset.year = y;
-      yearsEl.appendChild(span);
+    years.forEach((y, k) => {
+      const f = k / (years.length - 1);
+      el('span', 'year-slider__tick', ticksEl).style.setProperty('--f', f);
+      const label = el('span', '', yearsEl);
+      label.textContent = y;
+      label.dataset.year = y;
+      label.style.setProperty('--f', f);
+      label.addEventListener('click', () => setYear(y));   // labels are a mouse shortcut; the input handles keys
     });
 
     buildSectors();
 
-    slider.addEventListener('input', () => { year = Number(slider.value); render(); });
+    slider.addEventListener('input', () => setYear(Number(slider.value)));
     root.querySelectorAll('input[name="sector-view"]').forEach(r =>
       r.addEventListener('change', () => { if (r.checked) { view = r.value; render(); } }));
     document.addEventListener('keydown', e => {
@@ -308,18 +310,26 @@
 
   // ---- Render ----
 
+  function setYear(y) {
+    if (y === year) return;
+    year = y;
+    slider.value = y;
+    render();
+  }
+
   function render() {
     root.classList.toggle('is-split', view === 'split');
     renderText();
+    pendingFadeIns = [];
     data.sectors.forEach((s, i) => renderSector(i));
     renderHighlight();
     renderCard();
 
-    // Nothing moves on a view or year change: dots appear in place as the circle
-    // fill for one frame, then fill in with their colours.
-    root.classList.add('is-refilling');
-    void root.offsetWidth;
-    root.classList.remove('is-refilling');
+    // New dots were added at opacity 0; commit that, then fade them in.
+    if (pendingFadeIns.length) {
+      void root.offsetWidth;
+      pendingFadeIns.forEach(d => { d.style.opacity = 1; });
+    }
   }
 
   function renderText() {
@@ -352,6 +362,10 @@
     non.appendChild(document.createTextNode('Non-Reporters'));
 
     slider.setAttribute('aria-valuetext', String(year));
+    const f = years.indexOf(year) / (years.length - 1);
+    sliderFill.style.setProperty('--f', f);
+    sliderThumb.style.setProperty('--f', f);
+    ticksEl.querySelectorAll('.year-slider__tick').forEach((t, k) => t.classList.toggle('is-passed', years[k] <= year));
     yearsEl.querySelectorAll('span').forEach(s => s.classList.toggle('is-current', Number(s.dataset.year) === year));
 
     chart.setAttribute('aria-label', describe());
@@ -385,25 +399,52 @@
       ? `${data.sectors[i].name}: ${data.groups.sp500.shortLabel} ${counts('sp500', i).rep} of ${counts('sp500', i).total} reporting; ${data.groups.smallestHalf.shortLabel} ${counts('smallestHalf', i).rep} of ${counts('smallestHalf', i).total} reporting`
       : `${data.sectors[i].name}: ${fc.rep} of ${fc.total} companies reporting`);
 
-    // Dots jump straight to their new places (render() then fills them in with colour);
-    // dots no longer needed are removed.
+    // Dots never move. A colour change sweeps along the non-reporter boundary:
+    // inward when the orange core shrinks (the colour recedes to the centre),
+    // outward when it grows. Dots added or removed, and a whole view change,
+    // fade from the centre of the circle out.
     const seen = new Set();
+    const prevNon = ui.prevNon || {};
+    const nextNon = {};
     dotTargets(i).forEach(t => {
       seen.add(t.key);
+      nextNon[t.g] = t.nonCount;
+      const color = t.non ? data.nonReporterColor : data.groups[t.g].reporterColor;
       let dot = ui.dots.get(t.key);
-      if (!dot) {
-        dot = el('div', 'sector-dot', ui.layer);
-        ui.dots.set(t.key, dot);
+      let delay = 0;
+      if (!dot || dot._leaving) {
+        if (!dot) {
+          dot = el('div', 'sector-dot', ui.layer);
+          dot.style.opacity = 0;
+          ui.dots.set(t.key, dot);
+        }
+        clearTimeout(dot._leave);
+        dot._leaving = false;
+        delay = outwardDelay(t.rad, t.maxRad);
+        pendingFadeIns.push(dot);
+      } else if (dot._color !== color && prevNon[t.g] !== undefined) {
+        const was = prevNon[t.g];
+        const lo = Math.min(was, t.nonCount);
+        const p = (t.k - lo) / Math.max(Math.abs(t.nonCount - was) - 1, 1);
+        delay = SWEEP_MS * (t.nonCount < was ? 1 - p : p);
       }
+      dot.style.transitionDelay = `${delay}ms`;
       dot.style.transform = `translate(${t.x - DOT_R}px, ${t.y - DOT_R}px)`;
-      dot.style.background = t.non ? data.nonReporterColor
-        : data.groups[view === 'full' ? FULL : t.half].reporterColor;
+      dot.style.background = color;
+      dot._color = color;
+      dot._rad = t.rad;
+      dot._maxRad = t.maxRad;
     });
     ui.dots.forEach((dot, key) => {
-      if (seen.has(key)) return;
-      dot.remove();
-      ui.dots.delete(key);
+      if (seen.has(key) || dot._leaving) return;
+      dot._leaving = true;
+      const delay = outwardDelay(dot._rad, dot._maxRad);
+      dot.style.transitionDelay = `${delay}ms`;
+      dot.style.opacity = 0;
+      dot._leave = setTimeout(() => { dot.remove(); ui.dots.delete(key); },
+        reducedMotion.matches ? 0 : delay + FADE_MS);
     });
+    ui.prevNon = nextNon;
   }
 
   // ---- Hover / focus ----
