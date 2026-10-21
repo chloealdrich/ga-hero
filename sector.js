@@ -20,12 +20,14 @@
   const PLOT_BOTTOM = 770;        // above the year slider
   const CARD_GAP = 12;
   const CARD_W = { full: 300, split: 300 };   // spec allows 280–300; 280 wraps the split rows in Runda
-  const SPLIT_CARD_TOP = 530;
+  const SPLIT_CARD_TOP = 530;     // preferred; moved if it would cover a highlighted circle
+  const SPLIT_CARD_MIN_TOP = 330; // below the intro text
   const DIVIDER_X = 720;
   const LEAVE_MS = 240;
 
   // Reference sector centres (2025) by sector id. Full view from the spec table;
-  // split views read from the S3 frame. Packing starts here for every year.
+  // split views read from the S3 frame. Packing starts here for every year;
+  // `compact` layouts are then drawn together to CIRCLE_GAP spacing.
   const REF = {
     russell1000: {
       bounds: [104, 1336],
@@ -40,6 +42,7 @@
     },
     sp500: {
       bounds: [104, 664],
+      compact: true,
       centers: {
         'communications': [337.2, 557.2], 'consumer-discretionary': [455.1, 557.2],
         'consumer-staples': [376.9, 637.0], 'energy': [378.4, 485.9],
@@ -51,6 +54,7 @@
     },
     smallestHalf: {
       bounds: [776, 1336],
+      compact: true,
       centers: {
         'communications': [970.1, 572.2], 'consumer-discretionary': [1129.2, 572.2],
         'consumer-staples': [1019.9, 646.7], 'energy': [1021.6, 504.0],
@@ -148,16 +152,33 @@
       n.y = Math.min(Math.max(n.y, PLOT_TOP + n.r), PLOT_BOTTOM - n.r);
     });
 
-    // Relax: resolve overlaps while pulling each circle back toward its 2025
-    // reference spot (already packed along the band's centreline), so 2025 matches
-    // the frames and other years read as circles resizing, not reshuffling.
-    for (let k = 0; k < 300; k++) {
-      collide();
-      nodes.forEach(n => {
-        n.x += (n.rx - n.x) * 0.05;
-        n.y += (n.ry - n.y) * 0.05;
-      });
-      clamp();
+    if (ref.compact) {
+      // Split halves: the frame's reference spots are loosely spaced, so pull every
+      // circle toward its half's centre until neighbours sit CIRCLE_GAP apart.
+      // Starting from the reference spots keeps each sector's place in the cluster.
+      const cx = nodes.reduce((a, n) => a + n.rx, 0) / nodes.length;
+      const cy = nodes.reduce((a, n) => a + n.ry, 0) / nodes.length;
+      for (let k = 0; k < 400; k++) {
+        const pull = Math.max(0.06 * (1 - k / 400), 0.01);   // never zero, so every circle settles against a neighbour
+        nodes.forEach(n => {
+          n.x += (cx - n.x) * pull;
+          n.y += (cy - n.y) * pull;
+        });
+        collide();
+        clamp();
+      }
+    } else {
+      // Full view: resolve overlaps while pulling each circle back toward its 2025
+      // reference spot (already packed along the band's centreline), so 2025 matches
+      // the frames and other years read as circles resizing, not reshuffling.
+      for (let k = 0; k < 300; k++) {
+        collide();
+        nodes.forEach(n => {
+          n.x += (n.rx - n.x) * 0.05;
+          n.y += (n.ry - n.y) * 0.05;
+        });
+        clamp();
+      }
     }
     for (let k = 0; k < 60; k++) { collide(); clamp(); }
     return nodes.map(({ x, y: yy, r }) => ({ x, y: yy, r }));
@@ -445,18 +466,45 @@
     const h = card.offsetHeight;
     let left, top;
     if (split) {
-      left = DIVIDER_X - CARD_W.split / 2;
-      top = SPLIT_CARD_TOP;
+      ({ left, top } = splitCardPosition(i, h));
     } else {
       const c = layouts[FULL][year][i];
       left = c.x + c.r + CARD_GAP;
       if (left + CARD_W.full > STAGE_W - 48) left = c.x - c.r - CARD_GAP - CARD_W.full;
-      top = c.y - CARD_GAP;
+      top = Math.max(Math.min(c.y - CARD_GAP, PLOT_BOTTOM - h), PLOT_TOP - 40);
     }
-    top = Math.max(Math.min(top, PLOT_BOTTOM - h), PLOT_TOP - 40);
     card.style.left = `${left}px`;
     card.style.top = `${top}px`;
     card.classList.add('is-visible');
+  }
+
+  /*
+   * Split view: the card sits on the divider by default, but must never cover the
+   * highlighted circle in either half. Try the divider at heights nearest the
+   * default first, then beside either circle; take the first spot that is clear.
+   */
+  function splitCardPosition(i, h) {
+    const w = CARD_W.split;
+    const circles = HALVES.map(g => layouts[g][year][i]);
+    const minTop = SPLIT_CARD_MIN_TOP;
+    const maxTop = PLOT_BOTTOM - h;
+    const clampTop = t => Math.max(Math.min(t, maxTop), minTop);
+    const clear = (left, top) => left >= 48 && left + w <= STAGE_W - 48 && circles.every(c => {
+      const nx = Math.max(left, Math.min(c.x, left + w));
+      const ny = Math.max(top, Math.min(c.y, top + h));
+      return Math.hypot(c.x - nx, c.y - ny) >= c.r + CARD_GAP;
+    });
+
+    const candidates = [];
+    const centred = DIVIDER_X - w / 2;
+    for (let t = minTop; t <= maxTop; t += 10) candidates.push({ left: centred, top: t });
+    candidates.sort((a, b) => Math.abs(a.top - SPLIT_CARD_TOP) - Math.abs(b.top - SPLIT_CARD_TOP));
+    circles.forEach(c => {
+      const top = clampTop(c.y - h / 2);
+      candidates.push({ left: c.x - c.r - CARD_GAP - w, top }, { left: c.x + c.r + CARD_GAP, top });
+    });
+
+    return candidates.find(p => clear(p.left, p.top)) || { left: centred, top: clampTop(SPLIT_CARD_TOP) };
   }
 
   // ---- Accessible description + table ----
