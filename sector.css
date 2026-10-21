@@ -345,11 +345,36 @@
  * smaller year labels underneath. Every mark sits at --f (0–1) along the line,
  * inset by half the native thumb so it lines up with where the input puts a year.
  */
+/* Play / pause, centred on the slider line (y 796), to its left. */
+.sector__play {
+  position: absolute;
+  left: 48px;
+  top: 776px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--anchor);
+  color: var(--white);
+  cursor: pointer;
+  transition: background-color var(--t-fast) var(--ease);
+}
+.sector__play:hover { background: var(--clarity); }
+.sector__play:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
+.sector__play-icon--pause,
+.sector__play.is-playing .sector__play-icon--play { display: none; }
+.sector__play.is-playing .sector__play-icon--pause { display: block; }
+
 .year-slider {
   --inset: 12px;          /* half the native thumb width below */
 
   position: absolute;
-  left: 48px;
+  left: 108px;            /* clears the play button */
   right: 48px;
   top: 784px;
   height: 48px;

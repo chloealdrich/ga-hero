@@ -28,6 +28,7 @@
   const FADE_MS = 320;
   const SWEEP_MS = 360;           // a colour change travels across the changed band
   const OUTWARD_MS = 360;         // fades spread from a circle's centre to its edge
+  const PLAY_STEP_MS = 1400;      // per year when playing: the dot animation (~1s) plus a beat to read it
 
   // Reference sector centres (2025) by sector id. Full view from the spec table;
   // split views read from the S3 frame. Packing starts here for every year;
@@ -87,6 +88,7 @@
   const ticksEl = $('[data-slider-ticks]');
   const sliderFill = $('[data-slider-fill]');
   const sliderThumb = $('[data-slider-thumb]');
+  const playBtn = $('[data-sector-play]');
   const legend = $('[data-sector-legend]');
   const table = $('[data-sector-table]');
 
@@ -99,6 +101,7 @@
   let focused = null;
   const sectorsUI = [];   // per sector: { layer, circles, dots: Map, targets, prevNon }
   let pendingFadeIns = [];
+  let playTimer = 0;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   fetch('sector-data.json')
@@ -250,12 +253,13 @@
       label.textContent = y;
       label.dataset.year = y;
       label.style.setProperty('--f', f);
-      label.addEventListener('click', () => setYear(y));   // labels are a mouse shortcut; the input handles keys
+      label.addEventListener('click', () => { stopPlayback(); setYear(y); });   // mouse shortcut; the input handles keys
     });
 
     buildSectors();
 
-    slider.addEventListener('input', () => setYear(Number(slider.value)));
+    slider.addEventListener('input', () => { stopPlayback(); setYear(Number(slider.value)); });
+    playBtn.addEventListener('click', () => (playTimer ? stopPlayback() : startPlayback()));
     root.querySelectorAll('input[name="sector-view"]').forEach(r =>
       r.addEventListener('change', () => { if (r.checked) { view = r.value; render(); } }));
     document.addEventListener('keydown', e => {
@@ -309,6 +313,29 @@
   }
 
   // ---- Render ----
+
+  // ---- Play through the years ----
+
+  function startPlayback() {
+    // From the last year, start over at the first; otherwise carry on from here.
+    if (year === years[years.length - 1]) setYear(years[0]);
+    playBtn.classList.add('is-playing');
+    playBtn.setAttribute('aria-label', 'Pause timeline');
+    playTimer = setInterval(() => {
+      if (root.hidden) { stopPlayback(); return; }   // left the Sector tab
+      const next = years[years.indexOf(year) + 1];
+      setYear(next);
+      if (next === years[years.length - 1]) stopPlayback();
+    }, PLAY_STEP_MS);
+  }
+
+  function stopPlayback() {
+    if (!playTimer) return;
+    clearInterval(playTimer);
+    playTimer = 0;
+    playBtn.classList.remove('is-playing');
+    playBtn.setAttribute('aria-label', 'Play timeline');
+  }
 
   function setYear(y) {
     if (y === year) return;
