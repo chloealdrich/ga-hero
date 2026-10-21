@@ -1,5 +1,9 @@
 /* Section tabs shared by every page section. Uses the tokens defined in hero.css. */
 
+/* Overview scrolls and Sector doesn't; reserving the scrollbar's space on every tab
+   keeps the page width (and so every section's scale and logo position) identical. */
+html { scrollbar-gutter: stable; }
+
 .site-nav {
   position: absolute;
   right: 48px;

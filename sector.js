@@ -16,14 +16,14 @@
   const CIRCLE_PAD = 6;           // circle edge beyond the outermost dot
   const SINGLE_DOT_R = 9;
   const CIRCLE_GAP = 10;          // between neighbouring sector circles
-  const PLOT_TOP = 380;           // below the split headers
+  const PLOT_TOP = 380;           // full view: below the intro text
+  const SPLIT_PLOT_TOP = 405;     // split view: 24px below the split headers (which end ~381)
   const PLOT_BOTTOM = 770;        // above the year slider
   const CARD_GAP = 12;
   const CARD_W = { full: 300, split: 300 };   // spec allows 280–300; 280 wraps the split rows in Runda
   const SPLIT_CARD_TOP = 530;     // preferred; moved if it would cover a highlighted circle
   const SPLIT_CARD_MIN_TOP = 330; // below the intro text
   const DIVIDER_X = 720;
-  const LEAVE_MS = 240;
 
   // Reference sector centres (2025) by sector id. Full view from the spec table;
   // split views read from the S3 frame. Packing starts here for every year;
@@ -82,7 +82,6 @@
   const yearsEl = $('[data-sector-years]');
   const legend = $('[data-sector-legend]');
   const table = $('[data-sector-table]');
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   // ---- State ----
   let data, years, layouts;
@@ -131,6 +130,7 @@
       return { x, y: yy, rx: x, ry: yy, r: circleR(data.groups[group].totals[y][i]) };
     });
     const [x0, x1] = ref.bounds;
+    const top = ref.compact ? SPLIT_PLOT_TOP : PLOT_TOP;
 
     const collide = () => {
       for (let i = 0; i < nodes.length; i++) {
@@ -149,7 +149,7 @@
     };
     const clamp = () => nodes.forEach(n => {
       n.x = Math.min(Math.max(n.x, x0 + n.r), x1 - n.r);
-      n.y = Math.min(Math.max(n.y, PLOT_TOP + n.r), PLOT_BOTTOM - n.r);
+      n.y = Math.min(Math.max(n.y, top + n.r), PLOT_BOTTOM - n.r);
     });
 
     if (ref.compact) {
@@ -314,6 +314,12 @@
     data.sectors.forEach((s, i) => renderSector(i));
     renderHighlight();
     renderCard();
+
+    // Nothing moves on a view or year change: dots appear in place as the circle
+    // fill for one frame, then fill in with their colours.
+    root.classList.add('is-refilling');
+    void root.offsetWidth;
+    root.classList.remove('is-refilling');
   }
 
   function renderText() {
@@ -363,9 +369,8 @@
     const full = layouts[FULL][year][i];
     const split = view === 'split';
 
-    // Halves start from (and return to) the full circle, so the split reads as one circle dividing.
     placeCircle(ui.circles[FULL], full, !split);
-    HALVES.forEach(h => placeCircle(ui.circles[h], split ? layouts[h][year][i] : full, split));
+    HALVES.forEach(h => placeCircle(ui.circles[h], layouts[h][year][i], split));
 
     // Hit targets follow the visible circles.
     const place = (t, c) => {
@@ -380,28 +385,24 @@
       ? `${data.sectors[i].name}: ${data.groups.sp500.shortLabel} ${counts('sp500', i).rep} of ${counts('sp500', i).total} reporting; ${data.groups.smallestHalf.shortLabel} ${counts('smallestHalf', i).rep} of ${counts('smallestHalf', i).total} reporting`
       : `${data.sectors[i].name}: ${fc.rep} of ${fc.total} companies reporting`);
 
-    // Dots: move survivors, add new ones in place, fade out the rest.
+    // Dots jump straight to their new places (render() then fills them in with colour);
+    // dots no longer needed are removed.
     const seen = new Set();
     dotTargets(i).forEach(t => {
       seen.add(t.key);
       let dot = ui.dots.get(t.key);
-      const isNew = !dot;
-      if (isNew) {
-        dot = el('div', 'sector-dot is-leaving', ui.layer);
+      if (!dot) {
+        dot = el('div', 'sector-dot', ui.layer);
         ui.dots.set(t.key, dot);
       }
-      clearTimeout(dot._leave);
       dot.style.transform = `translate(${t.x - DOT_R}px, ${t.y - DOT_R}px)`;
       dot.style.background = t.non ? data.nonReporterColor
         : data.groups[view === 'full' ? FULL : t.half].reporterColor;
-      if (isNew) void dot.offsetWidth;   // commit the hidden state so the fade-in runs
-      dot.classList.remove('is-leaving');
     });
     ui.dots.forEach((dot, key) => {
       if (seen.has(key)) return;
-      dot.classList.add('is-leaving');
-      clearTimeout(dot._leave);
-      dot._leave = setTimeout(() => { dot.remove(); ui.dots.delete(key); }, reducedMotion.matches ? 0 : LEAVE_MS);
+      dot.remove();
+      ui.dots.delete(key);
     });
   }
 

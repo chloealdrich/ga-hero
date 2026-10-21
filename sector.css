@@ -2,7 +2,7 @@
 
 .sector {
   --sector-fill: #f4f4f4;
-  --t-dots: 600ms;
+  --t-fill: 320ms;   /* dots fill in with colour after a view or year change */
 
   position: relative;
   height: 100vh;
@@ -204,7 +204,8 @@
 }
 .sector-layer.is-dimmed { opacity: .35; }
 
-/* Circles and dots are positioned with transforms from their top-left at (0, 0). */
+/* Circles and dots are positioned with transforms from their top-left at (0, 0).
+   Layout changes are instant (nothing moves); only colour transitions. */
 .sector-circle {
   position: absolute;
   left: 0;
@@ -214,10 +215,6 @@
   border: 2px solid transparent;
   background: var(--sector-fill);
   transition:
-    transform var(--t-dots) var(--ease),
-    width var(--t-dots) var(--ease),
-    height var(--t-dots) var(--ease),
-    opacity var(--t-dots) var(--ease),
     background-color var(--t-med) var(--ease),
     border-color var(--t-med) var(--ease);
 }
@@ -233,12 +230,13 @@
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  transition:
-    transform var(--t-dots) var(--ease),
-    background-color var(--t-dots) var(--ease),
-    opacity var(--t-med) var(--ease);
+  transition: background-color var(--t-fill) var(--ease);
 }
-.sector-dot.is-leaving { opacity: 0; }
+/* Set for one frame by sector.js: dots start as the circle fill, then fill in. */
+.sector.is-refilling .sector-dot {
+  background-color: var(--sector-fill) !important;
+  transition: none !important;
+}
 
 .sector-target {
   position: absolute;
@@ -251,10 +249,6 @@
   background: transparent;
   cursor: pointer;
   pointer-events: auto;
-  transition:
-    transform var(--t-dots) var(--ease),
-    width var(--t-dots) var(--ease),
-    height var(--t-dots) var(--ease);
 }
 .sector-target:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
 .sector-target[hidden] { display: none; }
