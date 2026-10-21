@@ -161,7 +161,8 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') setPreview(null); });
     window.addEventListener('scroll', onScroll, { passive: true });
     if ('onscrollend' in window) window.addEventListener('scrollend', settle);
-    window.addEventListener('resize', () => { fitStage(); schedule(); });
+    // Also fires when the Overview tab is shown again: re-measure what was hidden.
+    window.addEventListener('resize', () => { fitStage(); measureCards(); schedule(); });
     cta.addEventListener('click', e => { e.preventDefault(); goToYear(Y0 + 1); });
     if (document.fonts) document.fonts.ready.then(() => { measureCards(); schedule(); });
 

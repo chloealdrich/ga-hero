@@ -1,0 +1,424 @@
+/* Section 2: Reporting by Sector. Uses the tokens defined in hero.css. */
+
+.sector {
+  --sector-fill: #f4f4f4;
+  --t-dots: 600ms;
+
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font);
+}
+
+/* The 1440 × 900 design frame, scaled to fit the viewport by sector.js (--sector-scale). */
+.sector__stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1440px;
+  height: 900px;
+  transform: translate(-50%, -50%) scale(var(--sector-scale, 1));
+  transform-origin: center;
+}
+
+/* ---------- Header ---------- */
+
+.sector__logo {
+  position: absolute;
+  left: 48px;
+  top: 36px;
+  width: 280px;
+  height: auto;
+}
+
+.sector__intro {
+  position: absolute;
+  left: 48px;
+  top: 160px;
+  width: 620px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sector__title {
+  margin: 0;
+  font-size: 48px;
+  line-height: 56px;
+  font-weight: 300;
+  color: var(--anchor);
+}
+
+.sector__summary {
+  margin: 0;
+  font-size: 18px;
+  line-height: 26px;
+  color: var(--ink);
+}
+
+.sector__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--graphite);
+}
+
+/* ---------- View toggle + legend ---------- */
+
+.sector__view {
+  position: absolute;
+  right: 48px;
+  top: 160px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.sector__view legend {
+  float: right;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 500;
+  color: var(--graphite);
+}
+
+.sector__view-options {
+  clear: both;
+  display: flex;
+  gap: 24px;
+}
+
+.sector__view-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.sector__view-options input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--clarity);
+  cursor: pointer;
+}
+
+.sector__legend {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.sector__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sector__legend-swatches { display: inline-flex; gap: 2px; }
+
+.sector-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+/* ---------- Split headers + divider ---------- */
+
+.sector__split-header {
+  position: absolute;
+  top: 340px;
+  width: 560px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--t-med) var(--ease), visibility 0s linear var(--t-med);
+}
+.sector__split-header--left { left: 104px; }
+.sector__split-header--right { left: 776px; }
+
+.sector__split-name {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+  color: var(--anchor);
+}
+
+.sector__split-count {
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 500;
+  color: var(--graphite);
+}
+
+.sector__divider {
+  position: absolute;
+  left: 720px;
+  top: 340px;
+  width: 1px;
+  height: 420px;
+  background: var(--line);
+  opacity: 0;
+  transition: opacity var(--t-med) var(--ease);
+}
+
+.sector.is-split .sector__split-header {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.sector.is-split .sector__divider { opacity: 1; }
+
+/* ---------- Chart ---------- */
+
+.sector__chart,
+.sector__plot,
+.sector__targets {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  pointer-events: none;
+}
+
+/* One layer per sector, so dimming applies to its circles and dots together. */
+.sector-layer {
+  position: absolute;
+  inset: 0;
+  transition: opacity var(--t-med) var(--ease);
+}
+.sector-layer.is-dimmed { opacity: .35; }
+
+/* Circles and dots are positioned with transforms from their top-left at (0, 0). */
+.sector-circle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background: var(--sector-fill);
+  transition:
+    transform var(--t-dots) var(--ease),
+    width var(--t-dots) var(--ease),
+    height var(--t-dots) var(--ease),
+    opacity var(--t-dots) var(--ease),
+    background-color var(--t-med) var(--ease),
+    border-color var(--t-med) var(--ease);
+}
+.sector-circle.is-highlighted {
+  background: var(--clarity-10);
+  border-color: var(--anchor);
+}
+
+.sector-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  transition:
+    transform var(--t-dots) var(--ease),
+    background-color var(--t-dots) var(--ease),
+    opacity var(--t-med) var(--ease);
+}
+.sector-dot.is-leaving { opacity: 0; }
+
+.sector-target {
+  position: absolute;
+  left: 0;
+  top: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    transform var(--t-dots) var(--ease),
+    width var(--t-dots) var(--ease),
+    height var(--t-dots) var(--ease);
+}
+.sector-target:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
+.sector-target[hidden] { display: none; }
+
+/* ---------- Hover card ---------- */
+
+.sector-card {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 16px 20px;
+  border-radius: 16px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(0, 24, 48, .12), 0 12px 32px rgba(0, 24, 48, .12);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--t-med) var(--ease), visibility 0s linear var(--t-med);
+}
+.sector-card.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.sector-card__icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: var(--clarity-10);
+  color: var(--anchor);
+}
+
+.sector-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sector-card.is-split .sector-card__body { gap: 12px; }
+
+.sector-card__name {
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+  color: var(--anchor);
+}
+
+.sector-card__meta {
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 500;
+  color: var(--graphite);
+}
+
+.sector-card__block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sector-card__block + .sector-card__block {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.sector-card__row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--ink);
+}
+.sector-card__row strong {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--anchor);
+}
+.sector-card__row .sector-swatch {
+  align-self: center;
+  width: 8px;
+  height: 8px;
+}
+
+/* ---------- Year slider ---------- */
+
+.sector__slider {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  top: 784px;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.sector__slider label {
+  flex: none;
+  padding-top: 2px;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 500;
+  color: var(--graphite);
+}
+
+.sector__slider-track {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sector__slider input {
+  width: 100%;
+  height: 24px;
+  margin: 0;
+  accent-color: var(--clarity);
+  cursor: pointer;
+}
+.sector__slider input:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
+
+.sector__slider-years {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 2px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--graphite);
+  font-variant-numeric: tabular-nums;
+}
+.sector__slider-years .is-current { font-weight: 700; color: var(--anchor); }
+
+/* ---------- Footer ---------- */
+
+.sector__source {
+  position: absolute;
+  left: 48px;
+  bottom: 24px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--graphite);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Reduced motion (and the first paint): switch states instantly. */
+.sector.is-instant * { transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .sector * { transition: none !important; }
+}

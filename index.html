@@ -7,12 +7,21 @@
 <!-- Runda, from G&A's Adobe Fonts web project -->
 <link rel="stylesheet" href="https://use.typekit.net/htc2apy.css">
 <link rel="stylesheet" href="hero.css">
+<link rel="stylesheet" href="sector.css">
+<link rel="stylesheet" href="nav.css">
 </head>
 <body>
 
-<div class="hero-scroll" id="hero" data-hero>
+<div class="hero-scroll" id="hero" data-hero data-page="overview" data-title="The Evolution of Sustainability Reporting">
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero__stage" data-stage>
+
+      <nav class="site-nav" aria-label="Sections">
+        <a href="#overview">Overview</a>
+        <a href="#sector">Sector</a>
+        <!-- TODO: point at the Initiative section once it exists. -->
+        <a href="#initiative">Initiative</a>
+      </nav>
 
       <figure class="hero__chart" role="img" aria-label="Timeline chart loading." data-chart>
         <svg width="1440" height="900" viewBox="0 0 1440 900" aria-hidden="true">
@@ -50,6 +59,63 @@
   </section>
 </div>
 
+<section class="sector" aria-labelledby="sector-title" data-sector data-page="sector" data-title="Reporting by Sector" hidden>
+  <div class="sector__stage" data-sector-stage>
+
+    <img class="sector__logo" src="assets/G%26A-Logo_fullname-color.svg" alt="Governance &amp; Accountability Institute, Inc.">
+
+    <nav class="site-nav" aria-label="Sections">
+      <a href="#overview">Overview</a>
+      <a href="#sector">Sector</a>
+      <!-- TODO: point at the Initiative section once it exists. -->
+      <a href="#initiative">Initiative</a>
+    </nav>
+
+    <div class="sector__intro">
+      <!-- Placeholder title copy (spec known issue 3). -->
+      <h2 class="sector__title" id="sector-title">Reporting by Sector, <span data-sector-year></span></h2>
+      <p class="sector__summary" data-sector-summary></p>
+      <p class="sector__hint">Each dot is one company. Hover a sector to see its counts.</p>
+    </div>
+
+    <fieldset class="sector__view">
+      <legend>View</legend>
+      <div class="sector__view-options">
+        <label><input type="radio" name="sector-view" value="full" checked><span data-view-label="russell1000"></span></label>
+        <label><input type="radio" name="sector-view" value="split">Split By Market Cap</label>
+      </div>
+      <div class="sector__legend" data-sector-legend></div>
+    </fieldset>
+
+    <div class="sector__split-header sector__split-header--left" data-split-header="sp500"></div>
+    <div class="sector__split-header sector__split-header--right" data-split-header="smallestHalf"></div>
+    <div class="sector__divider" aria-hidden="true"></div>
+
+    <figure class="sector__chart" role="img" aria-label="Sector chart loading." data-sector-chart>
+      <div class="sector__plot" aria-hidden="true" data-sector-plot></div>
+    </figure>
+
+    <!-- Focusable sector targets sit above the chart; the card describes the focused one. -->
+    <div class="sector__targets" data-sector-targets></div>
+    <div class="sector-card" role="tooltip" id="sector-card" data-sector-card></div>
+
+    <div class="sector__slider">
+      <label for="sector-year">Year</label>
+      <div class="sector__slider-track">
+        <input id="sector-year" type="range" step="1" data-sector-slider>
+        <div class="sector__slider-years" aria-hidden="true" data-sector-years></div>
+      </div>
+    </div>
+
+    <p class="sector__source" data-sector-source></p>
+
+    <table class="visually-hidden" data-sector-table></table>
+  </div>
+</section>
+
 <script src="hero.js" defer></script>
+<script src="sector-icons.js" defer></script>
+<script src="sector.js" defer></script>
+<script src="nav.js" defer></script>
 </body>
 </html>
