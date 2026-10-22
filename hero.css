@@ -6,6 +6,7 @@
   --graphite: #474747;
   --line: #d6d6d6;
   --clarity-10: #e6f0fc;
+  --thrive: #2f8730;      /* green #3eb33f darkened ~25% so white text meets 4.5:1 */
   --white: #ffffff;
 
   --font: runda, "Figtree", system-ui, sans-serif;

@@ -37,7 +37,7 @@
   position: absolute;
   left: 48px;
   top: 160px;
-  width: 620px;
+  width: 700px;   /* first summary sentence is up to 641px in Runda 18px; the toggle starts at x 959 */
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -57,6 +57,8 @@
   line-height: 26px;
   color: var(--ink);
 }
+
+.sector__summary-line { display: block; }
 
 .sector__hint {
   margin: 0;
@@ -238,7 +240,8 @@
 }
 
 /* Year-over-year change in non-reporters, centred on a circle's top-left edge.
-   sector.js sets the fill from the data colours; Graphite when unchanged. */
+   Fill: non-reporter colour when they rise (set by sector.js), Thrive Green when
+   they fall, Graphite when unchanged. */
 .sector-delta {
   position: absolute;
   display: inline-flex;
@@ -258,11 +261,13 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   transform: translate(-50%, -50%);
+  z-index: 2;   /* above every sector's dots, not just its own */
   pointer-events: none;
   opacity: 0;
   transition: opacity var(--t-med) var(--ease);
 }
 .sector-delta.is-visible { opacity: 1; }
+.sector-delta.is-down { background: var(--thrive); }   /* fewer non-reporters */
 
 .sector-target {
   position: absolute;

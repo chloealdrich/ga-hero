@@ -21,7 +21,6 @@
   const PLOT_BOTTOM = 770;        // above the year slider
   const CARD_GAP = 12;
   const CARD_W = { full: 300, split: 300 };   // spec allows 280–300; 280 wraps the split rows in Runda
-  const SPLIT_CARD_TOP = 530;     // preferred; moved if it would cover a highlighted circle
   const SPLIT_CARD_MIN_TOP = 330; // below the intro text
   const DIVIDER_X = 720;
   // Dot motion (colour and opacity only; keep FADE_MS in step with --t-fill in sector.css).
@@ -373,11 +372,11 @@
       b.classList.toggle('is-visible', show);
       if (!show) return;
       const d = counts(g, i).non - counts(g, i, prev).non;
-      // Solid fill: more non-reporters in the non-reporter colour, fewer in the
-      // group's reporter colour, no change in Graphite (CSS). Text and arrow are white.
+      // Solid fill: more non-reporters in the non-reporter colour, fewer in Thrive
+      // Green, no change in Graphite (both CSS). Text and arrow are white.
       const kind = d > 0 ? 'up' : d < 0 ? 'down' : 'flat';
-      b.style.background = kind === 'up' ? data.nonReporterColor
-        : kind === 'down' ? data.groups[g].reporterColor : '';
+      b.classList.toggle('is-down', kind === 'down');
+      b.style.background = kind === 'up' ? data.nonReporterColor : '';
       b.innerHTML = (kind === 'flat' ? '' : `<svg width="10" height="10" viewBox="0 0 256 256" fill="currentColor">${ARROWS[kind]}</svg>`) +
         `<span>${d > 0 ? '+' : d < 0 ? '−' : ''}${Math.abs(d)}</span>`;
       // Top-left of the circle, on its edge (45°).
@@ -406,8 +405,14 @@
   function renderText() {
     const full = groupCounts(FULL);
     $('[data-sector-year]').textContent = year;
-    $('[data-sector-summary]').textContent =
-      `${fmt(full.rep)} of ${fmt(full.total)} Russell 1000 companies published a sustainability report in ${year}. ${fmt(full.non)} did not.`;
+    // Two sentences, the second always on its own line, so the first line keeps the year
+    // and short counts never split "did / not." across lines.
+    const summary = $('[data-sector-summary]');
+    summary.innerHTML = '';
+    el('span', 'sector__summary-line', summary).textContent =
+      `${fmt(full.rep)} of ${fmt(full.total)} Russell 1000 companies published a sustainability report in ${year}.`;
+    summary.appendChild(document.createTextNode(' '));
+    el('span', 'sector__summary-line', summary).textContent = `${fmt(full.non)} did not.`;
 
     HALVES.forEach(h => {
       const c = groupCounts(h);
@@ -608,16 +613,18 @@
       return Math.hypot(c.x - nx, c.y - ny) >= c.r + CARD_GAP;
     });
 
-    const candidates = [];
+    // Preferred: on the divider, vertically centred on the midpoint of the two circles.
     const centred = DIVIDER_X - w / 2;
+    const preferredTop = clampTop((circles[0].y + circles[1].y) / 2 - h / 2);
+    const candidates = [{ left: centred, top: preferredTop }];
     for (let t = minTop; t <= maxTop; t += 10) candidates.push({ left: centred, top: t });
-    candidates.sort((a, b) => Math.abs(a.top - SPLIT_CARD_TOP) - Math.abs(b.top - SPLIT_CARD_TOP));
+    candidates.sort((a, b) => Math.abs(a.top - preferredTop) - Math.abs(b.top - preferredTop));
     circles.forEach(c => {
       const top = clampTop(c.y - h / 2);
       candidates.push({ left: c.x - c.r - CARD_GAP - w, top }, { left: c.x + c.r + CARD_GAP, top });
     });
 
-    return candidates.find(p => clear(p.left, p.top)) || { left: centred, top: clampTop(SPLIT_CARD_TOP) };
+    return candidates.find(p => clear(p.left, p.top)) || { left: centred, top: preferredTop };
   }
 
   // ---- Accessible description + table ----
