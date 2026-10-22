@@ -31,8 +31,8 @@
   }
 
   function route(fromNav) {
-    const id = location.hash.slice(1);
-    if (ids.includes(id)) show(id, { fromNav });
+    const id = location.hash.slice(1).split('/')[0];
+    if (ids.includes(id)) { if (id !== current) show(id, { fromNav }); }
     else if (current === null) show(ids[0], { fromNav });
   }
 

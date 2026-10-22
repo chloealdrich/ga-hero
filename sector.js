@@ -405,14 +405,8 @@
   function renderText() {
     const full = groupCounts(FULL);
     $('[data-sector-year]').textContent = year;
-    // Two sentences, the second always on its own line, so the first line keeps the year
-    // and short counts never split "did / not." across lines.
-    const summary = $('[data-sector-summary]');
-    summary.innerHTML = '';
-    el('span', 'sector__summary-line', summary).textContent =
-      `${fmt(full.rep)} of ${fmt(full.total)} Russell 1000 companies published a sustainability report in ${year}.`;
-    summary.appendChild(document.createTextNode(' '));
-    el('span', 'sector__summary-line', summary).textContent = `${fmt(full.non)} did not.`;
+    $('[data-sector-summary]').textContent =
+      `${fmt(full.rep)} of ${fmt(full.total)} Russell 1000 companies published a sustainability report in ${year}. ${fmt(full.non)} did not.`;
 
     HALVES.forEach(h => {
       const c = groupCounts(h);

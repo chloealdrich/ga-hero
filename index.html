@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="hero.css">
 <link rel="stylesheet" href="sector.css">
 <link rel="stylesheet" href="nav.css">
+<link rel="stylesheet" href="drill.css">
 </head>
 <body>
 
@@ -75,7 +76,7 @@
       <!-- Placeholder title copy (spec known issue 3). -->
       <h2 class="sector__title" id="sector-title">Reporting by Sector, <span data-sector-year></span></h2>
       <p class="sector__summary" data-sector-summary></p>
-      <p class="sector__hint">Each dot is one company. Hover a sector to see its counts.</p>
+      <p class="sector__hint">Each dot is one company. Hover a sector to see its counts, or click it to see its frameworks, SDGs and assurance.</p>
     </div>
 
     <fieldset class="sector__view">
@@ -123,12 +124,14 @@
     <p class="sector__source" data-sector-source></p>
 
     <table class="visually-hidden" data-sector-table></table>
+    <div class="drill" data-drill hidden></div>
   </div>
 </section>
 
 <script src="hero.js" defer></script>
 <script src="sector-icons.js" defer></script>
 <script src="sector.js" defer></script>
+<script src="drill.js" defer></script>
 <script src="nav.js" defer></script>
 </body>
 </html>

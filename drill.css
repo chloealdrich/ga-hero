@@ -1,0 +1,334 @@
+/* Section 3: sector drill-down. Renders inside Section 2's stage (drill.js) and
+   uses the tokens defined in hero.css. Geometry follows the D1–D6 frames. */
+
+/* While a sector is open, Section 2 keeps its logo, nav, View toggle and source
+   line; everything else in its stage steps aside. Nothing in Section 2's files changes. */
+.sector.is-drilling .sector__intro,
+.sector.is-drilling .sector__legend,
+.sector.is-drilling .sector__split-header,
+.sector.is-drilling .sector__divider,
+.sector.is-drilling .sector__chart,
+.sector.is-drilling .sector__targets,
+.sector.is-drilling .sector-card,
+.sector.is-drilling .sector__play,
+.sector.is-drilling .year-slider,
+.sector.is-drilling [data-sector-table] { display: none !important; }
+
+.drill {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;    /* the stage-sized layer must not cover the shared nav and toggle */
+  color: var(--ink);
+}
+.drill[hidden] { display: none; }
+.drill > * { pointer-events: auto; }
+
+.drill-abs { position: absolute; }
+
+/* ---------- Header: back link and title row ---------- */
+
+.drill-back {
+  position: absolute;
+  left: 48px;
+  top: 120px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--clarity);
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  transition: color var(--t-fast) var(--ease);
+}
+.drill-back:hover { color: var(--anchor); }
+
+.drill-title {
+  position: absolute;
+  left: 48px;
+  top: 176px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.drill-title__icon {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: var(--clarity-10);
+  color: var(--anchor);
+}
+.drill-title h2 {
+  margin: 0;
+  font-size: 48px;
+  line-height: 56px;
+  font-weight: 300;
+  color: var(--anchor);
+}
+.drill-title h2:focus { outline: none; }   /* receives focus programmatically for orientation */
+
+.drill-back:focus-visible,
+.drill-link:focus-visible,
+.drill-goal:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
+/* An outline on an SVG path draws its bounding box; trace the segment's own shape instead. */
+.drill-seg:focus { outline: none; }
+.drill-seg:focus-visible { stroke: var(--anchor); stroke-width: 3px; stroke-linejoin: round; }
+
+/* ---------- Pills (always above their chart) ---------- */
+
+.drill-pill {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1.5px solid;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.drill-pill--grey {
+  border-color: var(--graphite);
+  background: var(--sector-fill);
+  color: var(--graphite);
+}
+.drill-pill--at {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+/* ---------- Rings ---------- */
+
+.drill-ring { position: relative; }
+.drill-ring svg { display: block; }
+.drill-ring__arc { transition: stroke-dasharray 600ms var(--ease); }
+.drill-ring__arc.is-instant { transition: none; }
+.drill-ring__label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+.drill-ring__label.is-missing { color: var(--graphite); font-weight: 400; }
+
+/* ---------- Overview (D1 columns, D4 rows) ---------- */
+
+.drill-fw {
+  position: absolute;
+  display: flex;
+}
+.drill-fw__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.drill-fw__col .drill-link { margin-top: -8px; }
+
+.drill-cols {
+  position: absolute;
+  display: flex;
+}
+.drill-cols > div {
+  display: flex;
+  justify-content: center;
+}
+
+.drill-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--clarity);
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 500;
+  transition: color var(--t-fast) var(--ease);
+}
+.drill-link:hover { color: var(--anchor); }
+
+.drill-row-label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.drill-row-label__name {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 16px;
+  line-height: 22px;
+  font-weight: 700;
+  color: var(--anchor);
+}
+.drill-chip {
+  flex: none;
+  margin-top: 5px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+.drill-row-label__meta {
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 500;
+  color: var(--graphite);
+}
+
+/* ---------- SDG breakdown (D2, D5) ---------- */
+
+.drill-dots {
+  position: absolute;
+  height: 0;
+  border-top: 2px dotted var(--line);
+}
+
+.drill-goal {
+  position: absolute;
+  width: 40px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  cursor: default;
+}
+.drill-goal__num {
+  position: absolute;
+  left: 0;
+  top: 4px;
+  width: 40px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--graphite);
+}
+.drill-goal__bubble {
+  position: absolute;
+  border-radius: 999px;
+  transition: opacity var(--t-med) var(--ease);
+}
+.drill-goals.has-active .drill-goal:not(.is-active) .drill-goal__bubble { opacity: .25; }
+.drill-goal.is-active .drill-goal__num { font-weight: 700; color: var(--anchor); }
+
+/* Placeholder while the halves' SDG figures are pending (D5). */
+.drill-goal-ph {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 2px dashed;
+  background: var(--white);
+}
+
+/* ---------- External Assurance breakdown (D3, D6) ---------- */
+
+.drill-donut {
+  position: absolute;
+  border-radius: 999px;
+  background: var(--white);   /* masks the dotted line behind it */
+}
+.drill-donut svg { display: block; overflow: visible; }
+.drill-seg { transition: fill var(--t-med) var(--ease); }
+
+/* ---------- Tooltip and SDG connector ---------- */
+
+.drill-connector {
+  position: absolute;
+  width: 2px;
+  background: var(--line);
+  pointer-events: none;
+}
+.drill-connector[hidden] { display: none; }
+
+.drill-tip {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 2px rgba(0, 24, 48, .12), 0 12px 32px rgba(0, 24, 48, .12);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--t-med) var(--ease), visibility 0s linear var(--t-med);
+}
+.drill-tip.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+.drill-tip--goal { gap: 6px; }
+
+.drill-tip__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.drill-tip__goal {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  color: var(--white);
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 700;
+}
+.drill-tip__name {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.drill-tip__head--seg {
+  gap: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.drill-tip__swatch {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.drill-tip__value {
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 400;
+  color: var(--anchor);
+  font-variant-numeric: tabular-nums;
+}
+.drill-tip__sub {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--graphite);
+}
+
+/* Reduced motion: no transitions, arcs drawn in place. */
+@media (prefers-reduced-motion: reduce) {
+  .drill *, .drill-ring__arc { transition: none !important; }
+}
