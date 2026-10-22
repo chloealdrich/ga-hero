@@ -25,6 +25,7 @@
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const STAGE_W = 1440;
+  const STAGE_H = 900;
   const EDGE = 48;
   const ROUTE = /^#sector\/([a-z0-9-]+)(?:\/(sdgs|assurance))?$/;
   const FULL = 'russell1000';
@@ -51,6 +52,22 @@
     eaSplit:       { size: 104, r: 45, stroke: 12, font: [24, 28, 400], fill: '#ffffff', missing: 24 }, // D6
   };
 
+  // Zoom transition timings (ms) and easings.
+  const ZOOM = {
+    chart: 520,         // chart scales up and fades
+    chartScale: 3,
+    fade: 200,          // Section 2's text and slider fade out (and back in)
+    disc: 560,          // the bubble's highlight grows to fill the stage
+    discOut: 260,       // ...then clears to white
+    contentIn: 380,     // drill-down starts fading in over the tint
+    contentDur: 320,
+  };
+  const EASE = 'cubic-bezier(.2,.8,.2,1)';
+  const EASE_IN = 'cubic-bezier(.4,0,1,1)';
+  const EASE_IN_OUT = 'cubic-bezier(.6,0,.2,1)';
+  // Section 2's own content (not its logo, nav, View toggle or source) that steps aside.
+  const SECTION2_PARTS = '.sector__intro, .sector__legend, .sector__split-header, .sector__divider, .year-slider, .sector__play, .sector-card';
+
   // Donut geometry per spec.
   const DONUT = {
     full:  { size: 128, R: 64, r: 38, gap: 3, c: 5 },
@@ -63,6 +80,9 @@
   let activeTip = null;
   let lastOpenedByKeyboard = false;
   let returnByKeyboard = false;
+  let pendingOrigin = null;      // the clicked bubble, in stage px, for the zoom-in
+  let openedFrom = -1;           // index of the clicked sector button, to zoom back into the same circle
+  let zoom = null;               // running zoom: { anims, finish }
 
   Promise.all(['drill-data.json', 'sector-data.json'].map(url =>
     fetch(url).then(r => {
@@ -88,14 +108,17 @@
     sectorRoot.addEventListener('click', e => {
       const btn = e.target.closest('.sector-target');
       if (!btn || !targetsEl.contains(btn)) return;
-      const index = Math.floor([...targetsEl.querySelectorAll('.sector-target')].indexOf(btn) / 2);
+      const position = [...targetsEl.querySelectorAll('.sector-target')].indexOf(btn);
+      const index = Math.floor(position / 2);
       if (!sectors[index]) return;
+      openedFrom = position;
       lastOpenedByKeyboard = e.detail === 0;
+      pendingOrigin = bubbleOrigin(btn);   // zoom from the circle actually clicked (either half in split view)
       location.hash = `#sector/${sectors[index].id}`;
     });
 
     // The View radios are Section 2's: they hold the one full/split setting.
-    viewInputs.forEach(input => input.addEventListener('change', () => { if (current) render(false); }));
+    viewInputs.forEach(input => input.addEventListener('change', () => { if (current) render({ sweep: false }); }));
 
     host.addEventListener('click', e => {
       const link = e.target.closest('a[href^="#sector"]');
@@ -141,15 +164,21 @@
   // ---- Routing ----
 
   function route() {
+    stopZoom();
     const m = location.hash.match(ROUTE);
     const index = m ? sectors.findIndex(s => s.id === m[1]) : -1;
+    const origin = pendingOrigin;
+    pendingOrigin = null;
     if (index < 0) { if (current) close(); return; }
     const wasOpen = !!current;
     current = { index, sector: sectors[index], state: m[2] || 'overview' };
-    sectorRoot.classList.add('is-drilling');
+    // Zoom only when arriving from the sector chart (not on a direct link or between drill states).
+    const zoomIn = !wasOpen && origin && !reducedMotion.matches;
+    if (!zoomIn) sectorRoot.classList.add('is-drilling');
     host.hidden = false;
     document.title = `${current.sector.name} · ${sectorRoot.dataset.title}`;
-    render(true);
+    render({ sweepDelay: zoomIn ? ZOOM.contentIn : 0 });
+    if (zoomIn) zoomIntoSector(origin);
     // Keep keyboard and screen-reader users oriented: land on the sector heading.
     if (wasOpen || lastOpenedByKeyboard) host.querySelector('.drill-title h2')?.focus({ preventScroll: true });
     lastOpenedByKeyboard = false;
@@ -159,13 +188,18 @@
     const index = current.index;
     current = null;
     setTip(null);
-    host.hidden = true;
-    host.innerHTML = '';
-    sectorRoot.classList.remove('is-drilling');
     document.title = sectorRoot.dataset.title;
-    // Back on the sector chart: return keyboard focus to the circle the user came from.
-    if (returnByKeyboard) targetsEl.querySelectorAll('.sector-target')[index * 2]?.focus({ preventScroll: true });
-    returnByKeyboard = false;
+    const finish = () => {
+      host.hidden = true;
+      host.innerHTML = '';
+      sectorRoot.classList.remove('is-drilling');
+      // Back on the sector chart: return keyboard focus to the circle the user came from.
+      if (returnByKeyboard) targetsEl.querySelectorAll('.sector-target')[index * 2]?.focus({ preventScroll: true });
+      returnByKeyboard = false;
+    };
+    // Zoom back out into the bubble when returning to the sector chart itself.
+    if (location.hash.startsWith('#sector') && !reducedMotion.matches) zoomOutToSector(index, finish);
+    else finish();
   }
 
   const view = () => (viewInputs.find(i => i.checked)?.value === 'split' ? 'split' : 'full');
@@ -423,7 +457,8 @@
 
   // ---- Render ----
 
-  function render(entering) {
+  // sweep: ring arcs draw in from 0 (after sweepDelay ms); false draws them in place.
+  function render({ sweep = true, sweepDelay = 0 } = {}) {
     tips = new Map();
     activeTip = null;
     const split = view() === 'split';
@@ -432,20 +467,121 @@
       sdgs: split ? sdgsSplit : sdgsFull,
       assurance: split ? assuranceSplit : assuranceFull,
     }[current.state]();
-    host.innerHTML = header() + body +
+    // One content layer, so the zoom can fade the whole drill-down in and out.
+    host.innerHTML = '<div class="drill-content">' + header() + body +
       '<span class="drill-connector" aria-hidden="true" hidden></span>' +
-      '<div class="drill-tip" role="tooltip" id="drill-tip"></div>';
+      '<div class="drill-tip" role="tooltip" id="drill-tip"></div></div>';
 
     // Ring arcs sweep in from 0 on entering a state (skipped under reduced motion).
     const arcs = [...host.querySelectorAll('.drill-ring__arc')];
     const settle = () => arcs.forEach(a => { a.style.strokeDasharray = a.dataset.dash; });
-    if (entering && !reducedMotion.matches) {
+    if (sweep && !reducedMotion.matches) {
       void host.offsetWidth;
-      requestAnimationFrame(settle);
+      setTimeout(() => requestAnimationFrame(settle), sweepDelay);
     } else {
       arcs.forEach(a => a.classList.add('is-instant'));
       settle();
     }
+  }
+
+  // ---- Zoom transition between the sector chart and the drill-down ----
+  //
+  // In: the clicked bubble's highlight disc grows from the bubble until it fills the
+  // stage while the chart scales up and fades; the drill-down fades in over the tint,
+  // then the tint clears. Out: the reverse, shrinking back into the same bubble.
+  // Section 2's logo, nav, View toggle and source stay on top throughout (drill.css).
+
+  function bubbleOrigin(btn) {
+    const stage = sectorRoot.querySelector('[data-sector-stage]').getBoundingClientRect();
+    const k = stage.width / STAGE_W;
+    const b = btn.getBoundingClientRect();
+    if (!b.width || !k) return null;
+    return { cx: (b.left + b.width / 2 - stage.left) / k, cy: (b.top + b.height / 2 - stage.top) / k, r: b.width / 2 / k };
+  }
+
+  // Scale at which a disc on the bubble covers every corner of the stage.
+  const coverScale = o => Math.max(
+    ...[[0, 0], [STAGE_W, 0], [0, STAGE_H], [STAGE_W, STAGE_H]].map(([x, y]) => Math.hypot(x - o.cx, y - o.cy))) / o.r * 1.02;
+
+  function makeDisc(o) {
+    const disc = document.createElement('div');
+    disc.className = 'drill-disc';
+    disc.setAttribute('aria-hidden', 'true');
+    disc.style.cssText = `left:${o.cx - o.r}px;top:${o.cy - o.r}px;width:${2 * o.r}px;height:${2 * o.r}px`;
+    host.insertBefore(disc, host.firstChild);   // behind the drill content, above the chart
+    return disc;
+  }
+
+  function runZoom(anims, after) {
+    const finish = () => {
+      if (zoom?.finish !== finish) return;
+      zoom = null;
+      after();
+      anims.forEach(a => a.cancel());
+      host.querySelector('.drill-disc')?.remove();
+      sectorRoot.classList.remove('is-zooming');
+    };
+    zoom = { finish };
+    Promise.all(anims.map(a => a.finished)).then(finish, () => {});
+  }
+
+  // Jump a running zoom to its end state (e.g. the user navigates mid-animation).
+  const stopZoom = () => zoom?.finish();
+
+  function zoomIntoSector(o) {
+    const content = host.querySelector('.drill-content');
+    const chart = sectorRoot.querySelector('.sector__chart');
+    const parts = [...sectorRoot.querySelectorAll(SECTION2_PARTS)];
+    const disc = makeDisc(o);
+    sectorRoot.classList.add('is-zooming');
+    chart.style.transformOrigin = `${o.cx}px ${o.cy}px`;
+    runZoom([
+      chart.animate([{ transform: 'scale(1)', opacity: 1 }, { transform: `scale(${ZOOM.chartScale})`, opacity: 0 }],
+        { duration: ZOOM.chart, easing: EASE_IN, fill: 'forwards' }),
+      ...parts.map(p => p.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ZOOM.fade, easing: EASE, fill: 'forwards' })),
+      disc.animate([{ transform: 'scale(1)' }, { transform: `scale(${coverScale(o)})` }],
+        { duration: ZOOM.disc, easing: EASE_IN_OUT, fill: 'forwards' }),
+      disc.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ZOOM.discOut, delay: ZOOM.disc, easing: EASE, fill: 'forwards' }),
+      content.animate([{ opacity: 0, transform: 'scale(.98)' }, { opacity: 1, transform: 'none' }],
+        { duration: ZOOM.contentDur, delay: ZOOM.contentIn, easing: EASE, fill: 'backwards' }),
+    ], () => {
+      sectorRoot.classList.add('is-drilling');
+      chart.style.transformOrigin = '';
+    });
+  }
+
+  function zoomOutToSector(index, done) {
+    sectorRoot.classList.remove('is-drilling');   // Section 2 back in layout, so its bubble can be measured
+    // Back into the circle the user came from (either half in split view), if it's still showing.
+    const buttons = targetsEl.querySelectorAll('.sector-target');
+    const from = Math.floor(openedFrom / 2) === index ? buttons[openedFrom] : null;
+    const btn = from && !from.hidden ? from : buttons[index * 2];
+    const o = btn && bubbleOrigin(btn);
+    if (!o) { done(); return; }
+    const content = host.querySelector('.drill-content');
+    const chart = sectorRoot.querySelector('.sector__chart');
+    const parts = [...sectorRoot.querySelectorAll(SECTION2_PARTS)];
+    const disc = makeDisc(o);
+    const k = coverScale(o);
+    sectorRoot.classList.add('is-zooming');
+    chart.style.transformOrigin = `${o.cx}px ${o.cy}px`;
+    runZoom([
+      content.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.98)' }],
+        { duration: ZOOM.fade, easing: EASE, fill: 'forwards' }),
+      disc.animate([
+        { transform: `scale(${k})`, opacity: 0 },
+        { transform: `scale(${k})`, opacity: 1, offset: 0.25 },
+        { transform: 'scale(1)', opacity: 1 },
+      ], { duration: ZOOM.fade + ZOOM.disc, easing: EASE_IN_OUT, fill: 'forwards' }),
+      disc.animate([{ opacity: 1 }, { opacity: 0 }], { duration: ZOOM.discOut, delay: ZOOM.fade + ZOOM.disc, easing: EASE, fill: 'forwards' }),
+      chart.animate([{ transform: `scale(${ZOOM.chartScale})`, opacity: 0 }, { transform: 'scale(1)', opacity: 1 }],
+        { duration: ZOOM.chart, delay: ZOOM.fade + 80, easing: EASE, fill: 'backwards' }),
+      ...parts.map(p => p.animate([{ opacity: 0 }, { opacity: 1 }],
+        { duration: ZOOM.fade, delay: ZOOM.fade + ZOOM.chart - 120, easing: EASE, fill: 'backwards' })),
+    ], () => {
+      chart.style.transformOrigin = '';
+      done();
+    });
   }
 
   // ---- Tooltips ----

@@ -21,7 +21,32 @@
   color: var(--ink);
 }
 .drill[hidden] { display: none; }
-.drill > * { pointer-events: auto; }
+
+/* All drill content sits in one stage-sized layer so the zoom can fade it as a whole. */
+.drill-content {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.drill-content > * { pointer-events: auto; }
+
+/* ---------- Zoom transition (drill.js) ---------- */
+
+/* The clicked bubble's highlight, grown to fill the stage and shrunk back again. */
+.drill-disc {
+  position: absolute;
+  border-radius: 999px;
+  background: var(--clarity-10);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+/* During the zoom the drill layer sits over the chart, and the shared header
+   (logo, nav, View toggle, source) stays on top of both. */
+.sector.is-zooming .drill { z-index: 2; }
+.sector.is-zooming .sector__logo,
+.sector.is-zooming .site-nav,
+.sector.is-zooming .sector__view,
+.sector.is-zooming .sector__source { z-index: 3; }
 
 .drill-abs { position: absolute; }
 
