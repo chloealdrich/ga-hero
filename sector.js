@@ -27,6 +27,8 @@
   const FADE_MS = 240;
   const SWEEP_MS = 220;           // a colour change travels across the changed band
   const OUTWARD_MS = 220;         // fades spread from a circle's centre to its edge
+  const SPLIT_MS = 700;           // view switch: dots travel between the full bubble and its halves (--t-split)
+  const SPLIT_STAGGER = 140;      // ...starting up to this much apart
   const PLAY_STEP_MS = 700;       // per year when playing; each year's dot animation finishes in ~460ms
   const DELTA_HOLD_MS = 2500;     // change bubbles fade this long after the last year change
   // Phosphor arrow-up / arrow-down (Bold) for the change bubbles.
@@ -106,6 +108,7 @@
   let focused = null;
   const sectorsUI = [];   // per sector: { layer, circles, dots: Map, targets, prevNon }
   let pendingFadeIns = [];
+  let morphTimer = 0;
   let playTimer = 0;
   let deltasOn = false;   // change bubbles showing (after a year change)
   let deltaTimer = 0;
@@ -231,6 +234,32 @@
     return out;
   }
 
+  /*
+   * For the view switch: pair every dot of the full bubble with a slot in one of the
+   * halves (the halves always sum to the full index). Within non-reporters and within
+   * reporters, the leftmost dots go to the left half (S&P 500) and the rest to the
+   * right (smallest half), inner dots to inner slots, so the bubble visibly splits.
+   */
+  function morphPairs(i) {
+    const c = layouts[FULL][year][i];
+    const full = counts(FULL, i);
+    const sp = counts('sp500', i);
+    const sm = counts('smallestHalf', i);
+    const x = k => spiral(c.x, c.y, k, full.total)[0];
+    const range = (a, b) => Array.from({ length: b - a }, (_, k) => a + k);
+    const pairs = [];
+    const assign = (ks, leftCount, leftStart, rightStart) => {
+      const byX = [...ks].sort((a, b) => x(a) - x(b));
+      byX.slice(0, leftCount).sort((a, b) => a - b)
+        .forEach((k, j) => pairs.push([`${FULL}|${k}`, `sp500|${leftStart + j}`]));
+      byX.slice(leftCount).sort((a, b) => a - b)
+        .forEach((k, j) => pairs.push([`${FULL}|${k}`, `smallestHalf|${rightStart + j}`]));
+    };
+    assign(range(0, full.non), sp.non, 0, 0);                    // non-reporters (centre)
+    assign(range(full.non, full.total), sp.rep, sp.non, sm.non); // reporters
+    return pairs;
+  }
+
   // Delay for a fade that spreads from the centre of a circle to its edge.
   const outwardDelay = (rad, maxRad) => (maxRad ? OUTWARD_MS * rad / maxRad : 0);
 
@@ -268,7 +297,12 @@
     slider.addEventListener('input', () => { stopPlayback(); setYear(Number(slider.value)); });
     playBtn.addEventListener('click', () => (playTimer ? stopPlayback() : startPlayback()));
     root.querySelectorAll('input[name="sector-view"]').forEach(r =>
-      r.addEventListener('change', () => { if (r.checked) { view = r.value; render(); } }));
+      r.addEventListener('change', () => {
+        if (!r.checked) return;
+        const from = view;
+        view = r.value;
+        render({ morphFrom: from });
+      }));
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') { hovered = focused = null; updateActive(); }
     });
@@ -386,11 +420,15 @@
     }));
   }
 
-  function render() {
+  // morphFrom: the view being left, when the View toggle changed (dots then travel).
+  function render({ morphFrom } = {}) {
+    const morph = !!morphFrom && morphFrom !== view && !reducedMotion.matches;
+    if (morph) startMorph();
+    else endMorph();
     root.classList.toggle('is-split', view === 'split');
     renderText();
     pendingFadeIns = [];
-    data.sectors.forEach((s, i) => renderSector(i));
+    data.sectors.forEach((s, i) => renderSector(i, morph));
     renderDeltas();
     renderHighlight();
     renderCard();
@@ -448,13 +486,51 @@
     e.style.opacity = visible ? 1 : 0;
   }
 
-  function renderSector(i) {
+  // ---- View switch: the full bubble splits into its halves (and merges back) ----
+
+  function startMorph() {
+    endMorph();
+    // Splitting: the halves start out on top of the full bubble, then move apart.
+    if (view === 'split') {
+      sectorsUI.forEach((ui, i) => HALVES.forEach(h => placeCircle(ui.circles[h], layouts[FULL][year][i], true)));
+    }
+    void root.offsetWidth;
+    root.classList.add('is-splitting');
+    morphTimer = setTimeout(endMorph, SPLIT_MS + SPLIT_STAGGER + 60);
+  }
+
+  function endMorph() {
+    clearTimeout(morphTimer);
+    root.classList.remove('is-splitting');
+    sectorsUI.forEach(ui => ui.dots.forEach(d => d.classList.remove('is-moving')));
+  }
+
+  // Hand each dot its identity in the new view, so it travels instead of fading.
+  function rekeyForMorph(i) {
+    const ui = sectorsUI[i];
+    morphPairs(i).forEach(([fullKey, halfKey]) => {
+      const [from, to] = view === 'split' ? [fullKey, halfKey] : [halfKey, fullKey];
+      const dot = ui.dots.get(from);
+      if (!dot || dot._leaving) return;
+      const taken = ui.dots.get(to);
+      if (taken && taken !== dot) taken.remove();
+      ui.dots.delete(from);
+      ui.dots.set(to, dot);
+      dot.classList.add('is-moving');
+      // A little deterministic jitter so the dots peel away rather than move as a block.
+      dot._stagger = ((parseInt(to.split('|')[1], 10) * 37) % 11) / 10 * SPLIT_STAGGER;
+    });
+  }
+
+  function renderSector(i, morph = false) {
     const ui = sectorsUI[i];
     const full = layouts[FULL][year][i];
     const split = view === 'split';
 
+    // Hidden halves wait on the full bubble, so a split starts from it and a merge ends on it.
     placeCircle(ui.circles[FULL], full, !split);
-    HALVES.forEach(h => placeCircle(ui.circles[h], layouts[h][year][i], split));
+    HALVES.forEach(h => placeCircle(ui.circles[h], split ? layouts[h][year][i] : full, split));
+    if (morph) rekeyForMorph(i);
 
     // Hit targets follow the visible circles.
     const place = (t, c) => {
@@ -469,10 +545,10 @@
       ? `${data.sectors[i].name}: ${data.groups.sp500.shortLabel} ${counts('sp500', i).rep} of ${counts('sp500', i).total} reporting; ${data.groups.smallestHalf.shortLabel} ${counts('smallestHalf', i).rep} of ${counts('smallestHalf', i).total} reporting`
       : `${data.sectors[i].name}: ${fc.rep} of ${fc.total} companies reporting`);
 
-    // Dots never move. A colour change sweeps along the non-reporter boundary:
-    // inward when the orange core shrinks (the colour recedes to the centre),
-    // outward when it grows. Dots added or removed, and a whole view change,
-    // fade from the centre of the circle out.
+    // On a year change dots never move. A colour change sweeps along the non-reporter
+    // boundary: inward when the orange core shrinks (the colour recedes to the centre),
+    // outward when it grows. Dots added or removed fade from the centre of the circle out.
+    // On a view switch the re-keyed dots travel to their new place (is-moving).
     const seen = new Set();
     const prevNon = ui.prevNon || {};
     const nextNon = {};
@@ -492,6 +568,8 @@
         dot._leaving = false;
         delay = outwardDelay(t.rad, t.maxRad);
         pendingFadeIns.push(dot);
+      } else if (dot.classList.contains('is-moving')) {
+        delay = dot._stagger || 0;
       } else if (dot._color !== color && prevNon[t.g] !== undefined) {
         const was = prevNon[t.g];
         const lo = Math.min(was, t.nonCount);

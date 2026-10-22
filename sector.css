@@ -3,6 +3,7 @@
 .sector {
   --sector-fill: #f4f4f4;
   --t-fill: 240ms;   /* dot colour and fade duration; FADE_MS in sector.js matches */
+  --t-split: 700ms;  /* view switch: dots travel, bubbles divide or merge; SPLIT_MS matches */
 
   position: relative;
   height: 100vh;
@@ -235,6 +236,24 @@
   transition:
     background-color var(--t-fill) var(--ease),
     opacity var(--t-fill) var(--ease);
+}
+
+/* View switch (sector.js): dots travel between the full bubble and its halves,
+   recolouring on the way, while each bubble divides into (or merges from) its halves. */
+.sector-dot.is-moving {
+  transition:
+    transform var(--t-split) var(--ease),
+    background-color var(--t-split) var(--ease),
+    opacity var(--t-fill) var(--ease);
+}
+.sector.is-splitting .sector-circle {
+  transition:
+    transform var(--t-split) var(--ease),
+    width var(--t-split) var(--ease),
+    height var(--t-split) var(--ease),
+    opacity var(--t-split) var(--ease),
+    background-color var(--t-med) var(--ease),
+    border-color var(--t-med) var(--ease);
 }
 
 /* Year-over-year change in non-reporters, centred on a circle's top-left edge.
