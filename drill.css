@@ -40,11 +40,9 @@
   pointer-events: none;
   will-change: transform, opacity;
 }
-/* During the zoom the drill layer sits over the chart, and the shared header
-   (logo, nav, View toggle) stays on top of both. */
+/* During the zoom the drill layer sits over the chart, and the View toggle stays
+   on top of both. */
 .sector.is-zooming .drill { z-index: 2; }
-.sector.is-zooming .sector__logo,
-.sector.is-zooming .site-nav,
 .sector.is-zooming .sector__view { z-index: 3; }
 
 .drill-abs { position: absolute; }

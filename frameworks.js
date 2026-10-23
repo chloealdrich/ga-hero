@@ -1,25 +1,20 @@
 /*
- * Frameworks by Sector: a second view inside the Sector section.
+ * Frameworks by Sector: the Sector (Initiatives) section, built into its own stage.
  *
- * Adds its own "Explore More" link and view container to Section 2's stage, and
- * swaps views by toggling a class on Section 2's root. The packed-circle view is
- * only hidden, never re-rendered, so its year, full/split setting and hover state
- * survive the round trip. Section 2's logo and nav stay in place.
- *
- * Route: #sector/frameworks. 2025 values from frameworks-data.json; sector ids,
- * names and (Fill) icons from sector-data.json. Geometry follows frameworks-spec.md
- * and the E1–E5 frames (1440 × 900).
+ * 2025 values from frameworks-data.json; sector ids, names and (Fill) icons from
+ * sector-data.json. Geometry follows frameworks-spec.md and the E1–E5 frames
+ * (1440 × 900); the stage scales to the content window (sidebar.js).
  */
 (() => {
   'use strict';
 
-  const sectorRoot = document.querySelector('[data-sector]');
-  const stage = sectorRoot?.querySelector('[data-sector-stage]');
+  const root = document.querySelector('[data-frameworks]');
+  const stage = root?.querySelector('[data-frameworks-stage]');
   if (!stage) return;
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-  const ROUTE = '#sector/frameworks';
   const STAGE_W = 1440;
+  const STAGE_H = 900;
   const EDGE = 48;
   const HUB = [720, 812];
   const SLOT_STEP = 18;                 // degrees between stems; slot 0 points left (180°)
@@ -35,20 +30,15 @@
   const TIP_W = 148;
   const DIM = 0.22;                     // other frameworks while one is emphasised
   const TINT = 0.12;                    // centre half-circle: colour at 12% over white
-  const MS = { fade: 240, sort: 600, length: 400 };
-  const PACKED = '.sector__intro, .sector__view, .sector__split-header, .sector__divider, .sector__chart, ' +
-    '[data-sector-card], .sector__play, .year-slider, .fw-explore';
+  const MS = { sort: 600, length: 400 };
 
-  // Phosphor arrow-right, arrow-left, caret-down (Regular).
+  // Phosphor caret-down (Regular).
   const ICON = {
-    forward: '<path d="M221.66,133.66l-72,72a8,8,0,0,1-11.32-11.32L196.69,136H40a8,8,0,0,1,0-16H196.69L138.34,61.66a8,8,0,0,1,11.32-11.32l72,72A8,8,0,0,1,221.66,133.66Z"/>',
-    back: '<path d="M224,128a8,8,0,0,1-8,8H59.31l58.35,58.34a8,8,0,0,1-11.32,11.32l-72-72a8,8,0,0,1,0-11.32l72-72a8,8,0,0,1,11.32,11.32L59.31,120H216A8,8,0,0,1,224,128Z"/>',
     caret: '<path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"/>',
   };
 
   let data, sectors;                    // frameworks-data.json; sector-data.json sectors
-  let host, explore, els = {};
-  let open = false;
+  let host, els = {};
   let group = 'russell1000';
   let sortKey = 'az';                   // 'az' or a framework key
   let hover = null;                     // framework index emphasised by hover/focus
@@ -58,7 +48,6 @@
   let iconEls = [];                     // [i] -> icon group
   let angle = [];                       // [i] displayed angle (degrees)
   let shown = [];                       // [i][k] displayed value
-  let fade = null;
   const tweens = new Map();
 
   Promise.all(['frameworks-data.json', 'sector-data.json'].map(url =>
@@ -131,21 +120,11 @@
     data = f;
     sectors = s.sectors;
 
-    explore = document.createElement('a');
-    explore.className = 'fw-round-link fw-explore';
-    explore.href = ROUTE;
-    explore.innerHTML = `<span class="fw-round" aria-hidden="true">${icon(ICON.forward, 20)}</span>` +
-      '<span class="fw-round-link__label">Explore More</span>' +
-      '<span class="fw-round-link__sub">Frameworks by sector</span>';
-    stage.appendChild(explore);
-
     host = document.createElement('div');
     host.className = 'fw';
-    host.hidden = true;
     host.innerHTML = markup();
     stage.appendChild(host);
     els = {
-      h2: host.querySelector('.fw-intro h2'),
       legend: [...host.querySelectorAll('.fw-legend button')],
       radios: [...host.querySelectorAll('.fw-groups button')],
       select: host.querySelector('.fw-sort select'),
@@ -160,8 +139,14 @@
     wire();
     window.segmented?.(host.querySelector('.fw-groups'));   // sliding pill, shared with the View toggle
 
-    window.addEventListener('hashchange', route);
-    route();
+    window.addEventListener('resize', fitStage);
+    fitStage();
+    render({ animate: false });
+  }
+
+  function fitStage() {
+    const { width, height } = window.layoutWindow();
+    stage.style.setProperty('--sector-scale', Math.min(width / STAGE_W, height / STAGE_H));
   }
 
   function markup() {
@@ -172,7 +157,7 @@
     // Sort options in data order (GRI, SASB, TCFD, ISSB, ESRS, TNFD), as the spec lists them.
     const options = '<option value="az">Sector (A–Z)</option>' +
       data.frameworks.map(f => `<option value="${f.key}">${esc(f.label)}</option>`).join('');
-    return '<div class="fw-intro"><h2 tabindex="-1">Frameworks by Sector, ' + data.year + '</h2>' +
+    return '<div class="fw-intro"><h2 id="fw-title">Frameworks by Sector, ' + data.year + '</h2>' +
       '<p>Line length shows the share of each sector’s companies aligned with a framework.</p></div>' +
       `<div class="fw-legend" role="group" aria-label="Frameworks">${legend}</div>` +
       `<div class="fw-groups" role="radiogroup" aria-label="Companies">${radios}</div>` +
@@ -186,8 +171,6 @@
       '<g class="fw-stems"></g><g class="fw-icons" aria-hidden="true"></g></svg>' +
       '<div class="fw-center" aria-hidden="true"><span class="fw-center__value"></span><span class="fw-center__caption"></span></div>' +
       '</figure>' +
-      `<a class="fw-round-link fw-back" href="#sector"><span class="fw-round" aria-hidden="true">${icon(ICON.back, 20)}</span>` +
-      '<span class="fw-round-link__label">Back to<br>Reporting</span></a>' +
       '<div class="sector-card fw-tip" role="tooltip" id="fw-tip"></div>' +
       '<span class="visually-hidden" aria-live="polite" data-fw-live></span>';
   }
@@ -301,67 +284,15 @@
     });
     // Touch: tapping empty space clears.
     document.addEventListener('pointerdown', e => {
-      if (open && (hover !== null || tipAt) && !e.target.closest?.('.fw-hit, .fw-legend button')) showLine(null);
+      if ((hover !== null || tipAt) && !e.target.closest?.('.fw-hit, .fw-legend button')) showLine(null);
     });
     document.addEventListener('keydown', e => {
-      if (!open || e.key !== 'Escape') return;
+      if (e.key !== 'Escape') return;
       const focused = document.activeElement?.closest?.('.fw-hit, .fw-legend button');
       showLine(null);
       setHover(null);
       focused?.blur();
     });
-  }
-
-  // ---- Routing and the view swap ----
-
-  function route() {
-    if (location.hash === ROUTE) { if (!open) show(); }
-    else if (open) hide();
-  }
-
-  function show() {
-    open = true;
-    // Stop the year playback in the packed view (using its own control) so it doesn't run on hidden.
-    const play = sectorRoot.querySelector('[data-sector-play]');
-    if (play?.classList.contains('is-playing')) play.click();
-    // Every time the view opens: Russell 1000, sector A–Z, nothing emphasised.
-    group = 'russell1000';
-    sortKey = 'az';
-    hover = null;
-    tipAt = null;
-    els.select.value = 'az';
-    render({ animate: false });
-    host.hidden = false;
-    crossFade(true, () => sectorRoot.classList.add('is-frameworks'));
-    els.h2.focus({ preventScroll: true });
-  }
-
-  function hide() {
-    open = false;
-    showLine(null);
-    sectorRoot.classList.remove('is-frameworks');
-    crossFade(false, () => { host.hidden = true; });
-    if (location.hash === '#sector') explore.focus({ preventScroll: true });
-  }
-
-  // 240ms cross-fade between the packed view's content and this view.
-  function crossFade(toFrameworks, done) {
-    fade?.forEach(a => a.cancel());
-    fade = null;
-    const parts = [...sectorRoot.querySelectorAll(PACKED)];
-    if (reducedMotion.matches || !sectorRoot.offsetParent) { done(); return; }
-    const opts = { duration: MS.fade, easing: 'cubic-bezier(.2,.8,.2,1)' };
-    const anims = toFrameworks
-      ? [host.animate([{ opacity: 0 }, {}], opts), ...parts.map(p => p.animate([{}, { opacity: 0 }], { ...opts, fill: 'forwards' }))]
-      : [host.animate([{}, { opacity: 0 }], { ...opts, fill: 'forwards' }), ...parts.map(p => p.animate([{ opacity: 0 }, {}], opts))];
-    fade = anims;
-    if (toFrameworks) sectorRoot.classList.remove('is-frameworks');   // packed parts visible while they fade
-    Promise.all(anims.map(a => a.finished)).then(() => {
-      if (fade !== anims) return;
-      fade = null;
-      done();
-      anims.forEach(a => a.cancel());
-    }, () => {});
   }
 
   // ---- State changes ----

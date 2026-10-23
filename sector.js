@@ -10,11 +10,13 @@
   // ---- Reference geometry (1440 × 900) ----
   const STAGE_W = 1440;
   const STAGE_H = 900;
-  const DOT_SPACING = 5.6;        // sunflower spiral step
-  const GOLDEN_ANGLE = 2.399963;  // rad
   const DOT_R = 3;
   const CIRCLE_PAD = 6;           // circle edge beyond the outermost dot
-  const SINGLE_DOT_R = 9;
+  const ICON_DISC = 30;           // the sector icon's circle, sized as in the frameworks view (glyph ≈ 0.54 × circle)
+  const ICON_SIZE = 16;           // the glyph
+  const RING_START = ICON_DISC / 2 + 2.5 + DOT_R;   // first ring of dots: 2.5px clear of the icon circle
+  const RING_STEP = 9.5;          // between rings of dots
+  const RING_ARC = 10;            // between dots along a ring
   const CIRCLE_GAP = 10;          // between neighbouring sector circles
   const PLOT_TOP = 380;           // full view: below the intro text
   const SPLIT_PLOT_TOP = 405;     // split view: 24px below the split headers (which end ~381)
@@ -140,7 +142,26 @@
 
   const pct = (part, whole) => (whole ? (part / whole) * 100 : 0).toFixed(1);
   const fmt = n => n.toLocaleString('en-US');
-  const circleR = n => (n <= 0 ? 0 : n === 1 ? SINGLE_DOT_R : DOT_SPACING * Math.sqrt(n - 0.5) + DOT_R + CIRCLE_PAD);
+  /*
+   * Dot slots: concentric rings around the icon circle, filled from the inside out.
+   * Each ring takes as many dots as fit at RING_ARC apart, alternate rings offset by
+   * half a slot, and fills clockwise from the top. So the non-reporters (the first
+   * slots) sit together, and a partly filled outer ring leaves a gap. Slot k never
+   * depends on the circle's count, so dots keep their place when the year changes.
+   */
+  const slots = [];
+  function slot(k) {
+    while (slots.length <= k) {
+      const ring = slots.length ? slots[slots.length - 1].ring + 1 : 0;
+      const rad = RING_START + ring * RING_STEP;
+      const n = Math.floor(2 * Math.PI * rad / RING_ARC);
+      const offset = ring % 2 ? Math.PI / n : 0;
+      for (let s = 0; s < n; s++) slots.push({ ring, rad, a: -Math.PI / 2 + offset + s * 2 * Math.PI / n });
+    }
+    return slots[k];
+  }
+  const dotRad = k => slot(k).rad;
+  const circleR = n => (n <= 0 ? 0 : dotRad(n - 1) + DOT_R + CIRCLE_PAD);
 
   // ---- Layout: pack sector circles per group and year ----
 
@@ -206,16 +227,14 @@
     return nodes.map(({ x, y: yy, r }) => ({ x, y: yy, r }));
   }
 
-  // Dot k of a circle on the sunflower spiral.
-  function spiral(cx, cy, k, n) {
-    if (n === 1) return [cx, cy];
-    const rad = DOT_SPACING * Math.sqrt(k + 0.5);
-    const a = k * GOLDEN_ANGLE;
+  // Dot k of a circle, on its ring around the icon at the centre.
+  function dotXY(cx, cy, k) {
+    const { rad, a } = slot(k);
     return [cx + rad * Math.cos(a), cy + rad * Math.sin(a)];
   }
 
   /*
-   * A dot is keyed by its circle (the view's group) and its spiral index, so a year
+   * A dot is keyed by its circle (the view's group) and its slot index, so a year
    * change keeps every dot in its place: only the boundary between non-reporters
    * (the first indexes, at the centre) and reporters moves, and outer dots come and
    * go. A view change swaps one set of circles for the other.
@@ -225,10 +244,10 @@
     (view === 'full' ? [FULL] : HALVES).forEach(g => {
       const c = layouts[g][year][i];
       const { total, non } = counts(g, i);
-      const maxRad = DOT_SPACING * Math.sqrt(Math.max(total - 1, 0) + 0.5);
+      const maxRad = dotRad(Math.max(total - 1, 0));
       for (let k = 0; k < total; k++) {
-        const [x, y] = spiral(c.x, c.y, k, total);
-        out.push({ key: `${g}|${k}`, g, k, x, y, non: k < non, nonCount: non, rad: DOT_SPACING * Math.sqrt(k + 0.5), maxRad });
+        const [x, y] = dotXY(c.x, c.y, k);
+        out.push({ key: `${g}|${k}`, g, k, x, y, non: k < non, nonCount: non, rad: dotRad(k), maxRad });
       }
     });
     return out;
@@ -245,7 +264,7 @@
     const full = counts(FULL, i);
     const sp = counts('sp500', i);
     const sm = counts('smallestHalf', i);
-    const x = k => spiral(c.x, c.y, k, full.total)[0];
+    const x = k => dotXY(c.x, c.y, k)[0];
     const range = (a, b) => Array.from({ length: b - a }, (_, k) => a + k);
     const pairs = [];
     const assign = (ks, leftCount, leftStart, rightStart) => {
@@ -316,7 +335,8 @@
   }
 
   function fitStage() {
-    const scale = Math.min(root.clientWidth / STAGE_W, root.clientHeight / STAGE_H);
+    const { width, height } = window.layoutWindow();
+    const scale = Math.min(width / STAGE_W, height / STAGE_H);
     stage.style.setProperty('--sector-scale', scale);
   }
 
@@ -331,7 +351,14 @@
     data.sectors.forEach((s, i) => {
       const layer = el('div', 'sector-layer', plot);
       const circles = {};
-      [FULL, ...HALVES].forEach(g => { circles[g] = el('div', 'sector-circle', layer); });
+      // Each circle carries the sector's icon at its centre (decorative: the name is in
+      // the card, aria-label and table).
+      const icon = (window.SECTOR_ICONS || {})[s.icon] || '';
+      [FULL, ...HALVES].forEach(g => {
+        circles[g] = el('div', 'sector-circle', layer);
+        circles[g].innerHTML = `<span class="sector-circle__icon" style="width:${ICON_DISC}px;height:${ICON_DISC}px" aria-hidden="true">` +
+          `<svg width="${ICON_SIZE}" height="${ICON_SIZE}" viewBox="0 0 256 256" fill="currentColor">${icon}</svg></span>`;
+      });
 
       // One tab stop per sector; in split view a pointer-only twin covers the right half.
       const primary = el('button', 'sector-target', targetsEl);
@@ -441,7 +468,6 @@
 
   function renderText() {
     const full = groupCounts(FULL);
-    $('[data-sector-year]').textContent = year;
     $('[data-sector-summary]').textContent =
       `${fmt(full.rep)} of ${fmt(full.total)} Russell 1000 companies published a sustainability report in ${year}. ${fmt(full.non)} did not.`;
 
@@ -480,6 +506,7 @@
   }
 
   function placeCircle(e, c, visible) {
+    e.classList.toggle('is-empty', !c.r);   // no companies: no circle, so no icon either
     e.style.width = e.style.height = `${2 * c.r}px`;
     e.style.transform = `translate(${c.x - c.r}px, ${c.y - c.r}px)`;
     e.style.opacity = visible ? 1 : 0;

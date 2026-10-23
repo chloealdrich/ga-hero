@@ -199,6 +199,27 @@
 .ini-note[hidden] { display: none; }
 .ini-note svg { flex: none; }
 
+/* Clear all: a text button under the box's right edge, 44px tall to touch. */
+.ini-clear {
+  position: absolute;
+  right: calc(1440px - 448px);
+  top: 752px;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--clarity);
+  cursor: pointer;
+}
+.ini-clear:hover { color: var(--anchor); text-decoration: underline; }
+.ini-clear:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
+.ini-clear[hidden] { display: none; }
+
 /* ---------- Chart ---------- */
 
 .ini-chart {

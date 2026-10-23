@@ -3,29 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>The Evolution of Sustainability Reporting</title>
+<title>Sustainability Reporting in Focus</title>
 <!-- Runda, from G&A's Adobe Fonts web project -->
 <link rel="stylesheet" href="https://use.typekit.net/htc2apy.css">
 <link rel="stylesheet" href="hero.css">
 <link rel="stylesheet" href="sector.css">
-<link rel="stylesheet" href="nav.css">
 <link rel="stylesheet" href="drill.css">
 <link rel="stylesheet" href="frameworks.css">
 <link rel="stylesheet" href="segmented.css">
 <link rel="stylesheet" href="initiatives.css">
+<link rel="stylesheet" href="sidebar.css">
 </head>
 <body>
 
-<div class="hero-scroll" id="hero" data-hero data-page="overview" data-title="The Evolution of Sustainability Reporting">
+<!-- The route through the report: fixed beside the content window (sidebar.js). -->
+<nav class="side" aria-label="Report sections" data-side>
+  <img class="side__logo" src="assets/G%26A-Logo_short-white.svg" alt="Governance &amp; Accountability Institute, Inc.">
+  <ol class="side__list">
+    <li><a href="#overview"><span class="side__dot" aria-hidden="true"></span>Overview</a></li>
+    <li>
+      <a href="#initiatives"><span class="side__dot" aria-hidden="true"></span>Initiatives</a>
+      <ol class="side__sub">
+        <li><a href="#initiatives"><span class="side__dot" aria-hidden="true"></span>Intro</a></li>
+          <li><a href="#initiatives-gri"><span class="side__dot" aria-hidden="true"></span>GRI</a></li>
+          <li><a href="#initiatives-sasb"><span class="side__dot" aria-hidden="true"></span>SASB</a></li>
+          <li><a href="#initiatives-tcfd"><span class="side__dot" aria-hidden="true"></span>TCFD</a></li>
+          <li><a href="#initiatives-issb"><span class="side__dot" aria-hidden="true"></span>ISSB</a></li>
+          <li><a href="#initiatives-esrs"><span class="side__dot" aria-hidden="true"></span>ESRS</a></li>
+          <li><a href="#initiatives-sbti"><span class="side__dot" aria-hidden="true"></span>SBTi</a></li>
+          <li><a href="#initiatives-tnfd"><span class="side__dot" aria-hidden="true"></span>TNFD</a></li>
+          <li><a href="#initiatives-cdp"><span class="side__dot" aria-hidden="true"></span>CDP</a></li>
+          <li><a href="#initiatives-sdgs"><span class="side__dot" aria-hidden="true"></span>SDGs</a></li>
+          <li><a href="#initiatives-external-assurance"><span class="side__dot" aria-hidden="true"></span>External Assurance</a></li>
+      </ol>
+    </li>
+    <li>
+      <a href="#sector"><span class="side__dot" aria-hidden="true"></span>Sector</a>
+      <ol class="side__sub">
+        <li><a href="#sector"><span class="side__dot" aria-hidden="true"></span>Non-Reporters</a></li>
+        <li><a href="#sector-initiatives"><span class="side__dot" aria-hidden="true"></span>Initiatives</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+
+<!-- Navy surround with a rounded opening: the sections scroll behind it. -->
+<div class="frame" aria-hidden="true" data-frame></div>
+
+<main class="page">
+
+<div class="hero-scroll" id="overview" data-hero data-title="The Evolution of Sustainability Reporting">
   <section class="hero" aria-labelledby="hero-title">
     <div class="hero__stage" data-stage>
-
-      <nav class="site-nav" aria-label="Sections">
-        <a href="#overview">Overview</a>
-        <a href="#sector">Sector</a>
-        <!-- TODO: point at the Initiative section once it exists. -->
-        <a href="#initiative">Initiative</a>
-      </nav>
 
       <figure class="hero__chart" role="img" aria-label="Timeline chart loading." data-chart>
         <svg width="1440" height="900" viewBox="0 0 1440 900" aria-hidden="true">
@@ -38,8 +67,6 @@
           <g data-layer="hits" class="hero__hits"></g>
         </svg>
       </figure>
-
-      <img class="hero__logo" src="assets/G%26A-Logo_fullname-color.svg" alt="Governance &amp; Accountability Institute, Inc.">
 
       <h1 class="hero__title" id="hero-title">The Evolution of Sustainability Reporting</h1>
 
@@ -61,21 +88,75 @@
   </section>
 </div>
 
-<section class="sector" aria-labelledby="sector-title" data-sector data-page="sector" data-title="Reporting by Sector" hidden>
+<section class="initiatives" id="initiatives" aria-labelledby="initiatives-title" data-title="Reporting Initiatives" data-initiatives></section>
+
+<!-- Placeholders: one per initiative, filled in later. -->
+<section class="placeholder" id="initiatives-gri" aria-labelledby="initiatives-gri-title" data-title="GRI">
+  <div class="placeholder__stage" data-fit-stage>
+    <h2 id="initiatives-gri-title">GRI</h2>
+    <p>Content coming soon.</p>
+  </div>
+</section>
+<section class="placeholder" id="initiatives-sasb" aria-labelledby="initiatives-sasb-title" data-title="SASB">
+  <div class="placeholder__stage" data-fit-stage>
+    <h2 id="initiatives-sasb-title">SASB</h2>
+    <p>Content coming soon.</p>
+  </div>
+</section>
+<section class="placeholder" id="initiatives-tcfd" aria-labelledby="initiatives-tcfd-title" data-title="TCFD">
+  <div class="placeholder__stage" data-fit-stage>
+    <h2 id="initiatives-tcfd-title">TCFD</h2>
+    <p>Content coming soon.</p>
+  </div>
+</section>
+<section class="placeholder" id="initiatives-issb" aria-labelledby="initiatives-issb-title" data-title="ISSB">
+  <div class="placeholder__stage" data-fit-stage>
+    <h2 id="initiatives-issb-title">ISSB</h2>
+    <p>Content coming soon.</p>
+  </div>
+</section>
+<section class="placeholder" id="initiatives-esrs" aria-labelledby="initiatives-esrs-title" data-title="ESRS">
+  <div class="placeholder__stage" data-fit-stage>
+    <h2 id="initiatives-esrs-title">ESRS</h2>
+    <p>Content coming soon.</p>
+  </div>
+</section>
+<section class="placeholder" id="initiatives-sbti" aria-labelledby="initiatives-sbti-title" data-title="SBTi">
+  <div class="placeholder__stage" data-fit-stage>
+    <h2 id="initiatives-sbti-title">SBTi</h2>
+    <p>Content coming soon.</p>
+  </div>
+</section>
+<section class="placeholder" id="initiatives-tnfd" aria-labelledby="initiatives-tnfd-title" data-title="TNFD">
+  <div class="placeholder__stage" data-fit-stage>
+    <h2 id="initiatives-tnfd-title">TNFD</h2>
+    <p>Content coming soon.</p>
+  </div>
+</section>
+<section class="placeholder" id="initiatives-cdp" aria-labelledby="initiatives-cdp-title" data-title="CDP">
+  <div class="placeholder__stage" data-fit-stage>
+    <h2 id="initiatives-cdp-title">CDP</h2>
+    <p>Content coming soon.</p>
+  </div>
+</section>
+<section class="placeholder" id="initiatives-sdgs" aria-labelledby="initiatives-sdgs-title" data-title="SDGs">
+  <div class="placeholder__stage" data-fit-stage>
+    <h2 id="initiatives-sdgs-title">SDGs</h2>
+    <p>Content coming soon.</p>
+  </div>
+</section>
+<section class="placeholder" id="initiatives-external-assurance" aria-labelledby="initiatives-external-assurance-title" data-title="External Assurance">
+  <div class="placeholder__stage" data-fit-stage>
+    <h2 id="initiatives-external-assurance-title">External Assurance</h2>
+    <p>Content coming soon.</p>
+  </div>
+</section>
+
+<section class="sector" id="sector" aria-labelledby="sector-title" data-sector data-title="Trends in Non-Reporters 2020–2025">
   <div class="sector__stage" data-sector-stage>
 
-    <img class="sector__logo" src="assets/G%26A-Logo_fullname-color.svg" alt="Governance &amp; Accountability Institute, Inc.">
-
-    <nav class="site-nav" aria-label="Sections">
-      <a href="#overview">Overview</a>
-      <a href="#sector">Sector</a>
-      <!-- TODO: point at the Initiative section once it exists. -->
-      <a href="#initiative">Initiative</a>
-    </nav>
-
     <div class="sector__intro">
-      <!-- Placeholder title copy (spec known issue 3). -->
-      <h2 class="sector__title" id="sector-title">Reporting by Sector, <span data-sector-year></span></h2>
+      <h2 class="sector__title" id="sector-title">Trends in Non-Reporters 2020–2025</h2>
       <p class="sector__summary" data-sector-summary></p>
       <p class="sector__hint">Each dot is one company. Hover a sector to see its counts, or click it to see its frameworks, SDGs and assurance.</p>
     </div>
@@ -126,8 +207,15 @@
     <div class="drill" data-drill hidden></div>
   </div>
 </section>
-<section class="initiatives" aria-labelledby="initiatives-title" data-page="initiative" data-title="Reporting Initiatives" data-initiatives hidden></section>
 
+<!-- Sector (Initiatives): frameworks.js builds the view into this stage. -->
+<section class="sector sector--frameworks" id="sector-initiatives" aria-labelledby="fw-title" data-frameworks data-title="Frameworks by Sector">
+  <div class="sector__stage" data-frameworks-stage></div>
+</section>
+
+</main>
+
+<script src="sidebar.js" defer></script>
 <script src="hero.js" defer></script>
 <script src="segmented.js" defer></script>
 <script src="sector-icons.js" defer></script>
@@ -135,6 +223,5 @@
 <script src="drill.js" defer></script>
 <script src="frameworks.js" defer></script>
 <script src="initiatives.js" defer></script>
-<script src="nav.js" defer></script>
 </body>
 </html>

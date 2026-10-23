@@ -26,14 +26,6 @@
 
 /* ---------- Header ---------- */
 
-.sector__logo {
-  position: absolute;
-  left: 48px;
-  top: 36px;
-  width: 280px;
-  height: auto;
-}
-
 .sector__intro {
   position: absolute;
   left: 48px;
@@ -50,6 +42,7 @@
   line-height: 56px;
   font-weight: 300;
   color: var(--anchor);
+  white-space: nowrap;   /* one line: ~803px, past the intro's 780px but well clear of the View toggle (x 998) */
 }
 
 .sector__summary {
@@ -235,7 +228,8 @@
   box-sizing: border-box;
   border-radius: 999px;
   border: 2px solid transparent;
-  background: var(--sector-fill);
+  /* The fill at half strength: the circle's own opacity shows and hides it (sector.js). */
+  background: color-mix(in srgb, var(--sector-fill) 50%, transparent);
   transition:
     opacity var(--t-fill) var(--ease),
     background-color var(--t-med) var(--ease),
@@ -245,6 +239,27 @@
   background: var(--clarity-10);
   border-color: var(--anchor);
 }
+
+/* Sector icon at the circle's centre, inside the innermost ring of dots (sector.js):
+   a grey glyph on a light grey circle, shaped as in the frameworks view. The circle is a
+   step darker than the bubble; the glyph keeps 3:1 against it. */
+.sector-circle__icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #e3e3e3;
+  color: #808080;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  transition: background-color var(--t-med) var(--ease);
+}
+/* A highlighted bubble turns Clarity-10 itself; the icon's circle goes white to stay visible. */
+.sector-circle.is-highlighted .sector-circle__icon { background: var(--white); }
+.sector-circle.is-empty .sector-circle__icon { display: none; }
 
 .sector-dot {
   position: absolute;

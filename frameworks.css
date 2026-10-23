@@ -1,73 +1,12 @@
-/* Frameworks by Sector: second view of the Sector section (frameworks.js).
+/* Frameworks by Sector: the Sector (Initiatives) section (frameworks.js).
    Uses the tokens defined in hero.css; geometry follows the E1–E5 frames. */
-
-/* While this view is open, the packed-circle view's content steps aside (it is only
-   hidden, never reset). Section 2's logo and nav stay. */
-.sector.is-frameworks .sector__intro,
-.sector.is-frameworks .sector__view,
-.sector.is-frameworks .sector__split-header,
-.sector.is-frameworks .sector__divider,
-.sector.is-frameworks .sector__chart,
-.sector.is-frameworks .sector__targets,
-.sector.is-frameworks [data-sector-card],
-.sector.is-frameworks .sector__play,
-.sector.is-frameworks .year-slider,
-.sector.is-frameworks [data-sector-table],
-.sector.is-frameworks [data-drill],
-.sector.is-frameworks .fw-explore,
-.sector.is-drilling .fw-explore { display: none !important; }
-
-/* ---------- Explore More / Back to Reporting ---------- */
-
-.fw-round-link {
-  position: absolute;
-  top: 520px;
-  width: 120px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  text-decoration: none;
-  border-radius: 12px;
-}
-.fw-explore { left: 1272px; }
-.fw-back { left: 48px; }
-
-.fw-round {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;      /* still a full 44px touch target */
-  height: 44px;
-  border-radius: 999px;
-  background: var(--clarity);
-  color: var(--white);
-  transition: background-color var(--t-fast) var(--ease);
-}
-.fw-round-link:hover .fw-round { background: var(--anchor); }
-.fw-round-link:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
-
-.fw-round-link__label {
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 500;
-  color: var(--clarity);
-  text-align: center;
-}
-.fw-round-link__sub {
-  margin-top: -6px;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--graphite);
-  text-align: center;
-}
 
 /* ---------- The view ---------- */
 
 .fw {
   position: absolute;
   inset: 0;
-  pointer-events: none;    /* the stage-sized layer must not cover the shared nav */
+  pointer-events: none;    /* the stage-sized layer itself takes no pointer; its parts do */
   color: var(--ink);
 }
 .fw[hidden] { display: none; }
@@ -89,7 +28,6 @@
   font-weight: 300;
   color: var(--anchor);
 }
-.fw-intro h2:focus { outline: none; }   /* receives focus programmatically for orientation */
 .fw-intro p {
   margin: 0;
   font-size: 16px;
@@ -316,5 +254,5 @@
 
 /* Reduced motion: states switch instantly. */
 @media (prefers-reduced-motion: reduce) {
-  .fw *, .fw-round { transition: none !important; }
+  .fw * { transition: none !important; }
 }

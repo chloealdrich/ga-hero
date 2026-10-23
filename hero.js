@@ -10,7 +10,7 @@
   const STAGE_W = 1440;
   const STAGE_H = 900;
   const X_START = 160;            // x of the first year
-  const X_END = 1070;             // x of the domain end
+  const X_END = 1070;             // x of the last year (the axis always spans every year)
   const PLOT_LEFT = 104;
   const PLOT_RIGHT = 1392;
   const PLOT_TOP = 372;           // 100%
@@ -21,7 +21,6 @@
   const HIT_RADIUS = 20;          // hover target around an event's points (and the split connector)
   const Y_LABEL_X = 92;
   const PLAYHEAD_OVERSHOOT = 8;
-  const MIN_DOMAIN_END = 2015;
   const LABEL_GAP = 14;
   const LABEL_HALF_HEIGHT = 9;    // 18px line height, centred on the point
   const LABEL_MIN_SPACING = 20;
@@ -29,6 +28,9 @@
   const R_POINT = 3.5;
   const R_HEAD = 6;
   const R_STALK_DOT = 3.5;
+  const R_POINT_HIT = 12;         // hover target around each drawn data point
+  const R_POINT_HOVER = 6;        // a hovered point grows to this
+  const TIP_GAP = 14;             // between a hovered point and its value tooltip
 
   // Event card placement per anchor type, from the T1–T3 frames.
   const CARD = {
@@ -44,11 +46,9 @@
     clarity10: '#e6f0fc',
   };
 
-  const SPACING_MS = 240;
   const YEAR_EPSILON = 0.01;
   const SETTLE_DELAY_MS = 120;    // fallback idle time where `scrollend` is unsupported
   const SETTLE_COMMIT_PX = 24;    // scroll this far past a year and it carries on to the next
-  const ease = cubicBezier(.2, .8, .2, 1);
   const NS = 'http://www.w3.org/2000/svg';
 
   // ---- DOM ----
@@ -78,14 +78,13 @@
   let data, Y0, Y1, brk;
   let t;                    // continuous current year
   let shownYear = null;     // integer year last written to the call-out
-  let domainEnd;            // displayed (tweened) x-domain end
-  let tween = null;         // { from, to, start }
+  let pointHover = null;    // { s, p } data point under the pointer
   let raf = 0;
   let previewId = null;     // past event whose card is shown on hover/focus
   let lastScrollY = window.scrollY;
   let scrollDir = 1;
   let settleTimer = 0;
-  const els = { xlabels: new Map(), lineLabels: new Map(), cards: new Map(), stalks: new Map(), events: new Map(), hits: new Map() };
+  const els = { xlabels: new Map(), lineLabels: new Map(), cards: new Map(), stalks: new Map(), events: new Map(), hits: new Map(), pointHits: [] };
   const cardHeights = new Map();
 
   fetch('data.json')
@@ -135,9 +134,8 @@
 
   // ---- Scales ----
 
-  const xs = year => X_START + (year - Y0) / (domainEnd - Y0) * (X_END - X_START);
+  const xs = year => X_START + (year - Y0) / (Y1 - Y0) * (X_END - X_START);
   const ys = value => BASELINE - value * Y_PER_PCT;
-  const targetDomainEnd = year => Math.min(Math.max(Math.floor(year) + 1, MIN_DOMAIN_END), Y1);
 
   function anchorX(a) {
     if (a.type === 'gap') return (xs(a.between[0]) + xs(a.between[1])) / 2;
@@ -171,13 +169,12 @@
 
   function applyMotionMode() {
     root.classList.toggle('is-static', reducedMotion.matches);
-    tween = null;
-    domainEnd = undefined;
     schedule();
   }
 
   function fitStage() {
-    const scale = Math.min(stage.parentElement.clientWidth / STAGE_W, stage.parentElement.clientHeight / STAGE_H);
+    const { width, height } = window.layoutWindow();
+    const scale = Math.min(width / STAGE_W, height / STAGE_H);
     stage.style.setProperty('--hero-scale', scale);
   }
 
@@ -214,6 +211,7 @@
       btn.type = 'button';
       btn.setAttribute('aria-label', `Go to ${y}`);
       btn.addEventListener('click', () => goToYear(y));
+      btn.classList.add('is-visible');
       els.xlabels.set(y, btn);
     }
 
@@ -259,6 +257,47 @@
       hits.addEventListener('pointerleave', () => setPreview(null));
       els.hits.set(e.id, hits);
     });
+
+    // Every data point is a hover target (shown once the line has reached it), on top
+    // of the event targets. Hovering one shows its value and previews its event, if any.
+    els.pointDot = svg('circle', { r: R_POINT_HOVER, stroke: '#fff', 'stroke-width': 2.5, display: 'none', 'pointer-events': 'none' }, L.hits);
+    const points = svg('g', { class: 'hero__point-hits' }, L.hits);
+    data.series.forEach(s => s.points.forEach(p => {
+      const hit = svg('circle', { cx: xs(p.year), cy: ys(p.value), r: R_POINT_HIT, display: 'none' }, points);
+      hit.addEventListener('pointerenter', () => showPoint({ s, p }));
+      hit.addEventListener('pointerleave', () => showPoint(null));
+      els.pointHits.push({ hit, p });
+    }));
+    const tip = els.pointTip = html('div', 'sector-card hero-tip', overlay);
+    tip.setAttribute('role', 'tooltip');
+    tip.innerHTML = '<div class="hero-tip__name"><span class="hero-tip__dot"></span><span></span></div>' +
+      '<div class="hero-tip__value"></div>';
+  }
+
+  function showPoint(h) {
+    pointHover = h;
+    const dot = els.pointDot, tip = els.pointTip;
+    if (!h) {
+      dot.setAttribute('display', 'none');
+      tip.classList.remove('is-visible');
+      setPreview(null);
+      return;
+    }
+    const { s, p } = h;
+    const x = xs(p.year), y = ys(p.value);
+    dot.setAttribute('cx', x);
+    dot.setAttribute('cy', y);
+    dot.setAttribute('fill', s.color);
+    dot.removeAttribute('display');
+    tip.querySelector('.hero-tip__dot').style.background = s.color;
+    tip.querySelector('.hero-tip__name span:last-child').textContent = labelFor(s, p.year);
+    tip.querySelector('.hero-tip__value').innerHTML = `<strong>${p.text}%</strong> in ${p.year}`;
+    // Centred above the point, kept inside the plot.
+    const w = tip.offsetWidth, h2 = tip.offsetHeight;
+    tip.style.left = `${Math.min(Math.max(x - w / 2, PLOT_LEFT), PLOT_RIGHT - w)}px`;
+    tip.style.top = `${y - TIP_GAP - h2}px`;
+    tip.classList.add('is-visible');
+    setPreview(data.events.find(e => e.year <= t && eventPoints(e).includes(p))?.id ?? null);
   }
 
   // The data points on the line that belong to an event.
@@ -345,45 +384,24 @@
     return span > 0 ? Math.min(Math.max(-r.top / span, 0), 1) : 1;
   }
 
-  function frame(now) {
+  function frame() {
     raf = 0;
     t = reducedMotion.matches ? Y1 : Y0 + scrollProgress() * (Y1 - Y0);
     // Snap points can land a sub-pixel short of a year; treat that as the year itself.
     if (Math.abs(t - Math.round(t)) < YEAR_EPSILON) t = Math.round(t);
     const scrolled = -root.getBoundingClientRect().top > CTA_HIDE_AFTER_PX;
     cta.classList.toggle('is-hidden', reducedMotion.matches || scrolled);
-    updateDomain(now);
     render();
-    if (tween) schedule();
-  }
-
-  function updateDomain(now) {
-    const target = targetDomainEnd(t);
-    if (reducedMotion.matches || domainEnd === undefined) {
-      domainEnd = target;
-      tween = null;
-      return;
-    }
-    if (tween ? tween.to !== target : domainEnd !== target) {
-      tween = { from: domainEnd, to: target, start: now };
-    }
-    if (tween) {
-      const k = Math.min((now - tween.start) / SPACING_MS, 1);
-      domainEnd = tween.from + (tween.to - tween.from) * ease(k);
-      if (k >= 1) tween = null;
-    }
   }
 
   // ---- Render ----
 
   function render() {
     const year = Math.floor(t);
-    const target = targetDomainEnd(t);
 
-    // X labels: every year up to the target domain end; the current one is the pill.
+    // X labels: every year; the current one is the pill.
     els.xlabels.forEach((el, y) => {
       el.style.left = `${xs(y)}px`;
-      el.classList.toggle('is-visible', y <= target);
       el.classList.toggle('is-current', y === year);
       if (y === year) el.setAttribute('aria-current', 'true');
       else el.removeAttribute('aria-current');
@@ -407,6 +425,14 @@
     renderConnector();
     renderSeries(year);
     renderEvents(year);
+
+    // Point targets follow the line as it draws; a hovered point the line has
+    // retreated past lets go.
+    els.pointHits.forEach(({ hit, p }) => {
+      if (p.year <= t) hit.removeAttribute('display');
+      else hit.setAttribute('display', 'none');
+    });
+    if (pointHover && pointHover.p.year > t) showPoint(null);
 
     if (year !== shownYear) {
       shownYear = year;
@@ -590,25 +616,5 @@
       parts.push(`All lines break between ${brk.after} and ${brk.before} because the methodology changed.`);
     }
     return parts.join(' ');
-  }
-
-  // ---- Easing ----
-
-  function cubicBezier(x1, y1, x2, y2) {
-    const cx = 3 * x1, bx = 3 * (x2 - x1) - cx, ax = 1 - cx - bx;
-    const cy = 3 * y1, by = 3 * (y2 - y1) - cy, ay = 1 - cy - by;
-    const sx = u => ((ax * u + bx) * u + cx) * u;
-    const sy = u => ((ay * u + by) * u + cy) * u;
-    const dx = u => (3 * ax * u + 2 * bx) * u + cx;
-    return x => {
-      let u = x;
-      for (let i = 0; i < 8; i++) {
-        const err = sx(u) - x;
-        const d = dx(u);
-        if (Math.abs(err) < 1e-5 || !d) break;
-        u -= err / d;
-      }
-      return sy(Math.min(Math.max(u, 0), 1));
-    };
   }
 })();

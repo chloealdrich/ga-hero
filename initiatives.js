@@ -1,8 +1,8 @@
 /*
  * Section 3, Initiatives: drag initiative pills into a comparison box; each pill in
  * the box draws a line on a 2019–2025 chart (initiatives-data.json). Geometry follows
- * the I1–I5 frames. The logo, section nav, group switch (.fw-groups + segmented.js)
- * and hover card shell (.sector-card) are the ones the Sector section uses.
+ * the I1–I5 frames. The group switch (.fw-groups + segmented.js) and hover card
+ * shell (.sector-card) are the ones the Sector section uses.
  */
 (() => {
   'use strict';
@@ -72,18 +72,12 @@
   }
 
   // ---- Shell ----
-  // Built synchronously so nav.js, which runs next, marks this section's nav link current.
 
   const stage = el('div', 'ini__stage', root);
-  const sectorStage = document.querySelector('[data-sector-stage]');
-  for (const sel of ['.sector__logo', '.site-nav']) {
-    const src = sectorStage?.querySelector(sel);
-    if (src) stage.appendChild(src.cloneNode(true));
-  }
 
   function fitStage() {
-    if (!root.clientWidth) return;   // hidden tab: measured again when shown
-    stage.style.setProperty('--ini-scale', Math.min(root.clientWidth / STAGE_W, root.clientHeight / STAGE_H));
+    const { width, height } = window.layoutWindow();
+    stage.style.setProperty('--ini-scale', Math.min(width / STAGE_W, height / STAGE_H));
   }
   window.addEventListener('resize', fitStage);
   fitStage();
@@ -177,6 +171,12 @@
     note.innerHTML = `${icon('info', 16)}<span>SDG data isn’t available by market cap. Switch to Russell 1000 to plot it.</span>`;
     els.hint = el('span', 'ini-box__hint', box);
 
+    // Clear all: under the box's right edge, shown while the box has pills.
+    const clear = els.clear = el('button', 'ini-clear', stage);
+    clear.type = 'button';
+    clear.textContent = 'Clear all';
+    clear.addEventListener('click', clearAll);
+
     // Chart.
     const fig = els.fig = el('figure', 'ini-chart', stage);
     fig.setAttribute('role', 'img');
@@ -242,8 +242,6 @@
     });
     fig.addEventListener('keydown', onChartKey);
     fig.addEventListener('blur', () => { if (hoverByKey) setHover(null); });
-
-    root.addEventListener('focusin', fitStage);
   }
 
   function pill(ini, boxed) {
@@ -278,7 +276,7 @@
     if (focus) b.focus();
   }
 
-  function remove(id, { focus = false, keepGhost = false } = {}) {
+  function remove(id, { focus = false, keepGhost = false, announce: say = true } = {}) {
     const at = selection.indexOf(id);
     if (at < 0) return;
     selection.splice(at, 1);
@@ -295,8 +293,18 @@
       .onfinish = () => s.g.remove();
 
     changed();
-    announce(`${byId[id].label} removed from comparison.`);
+    if (say) announce(`${byId[id].label} removed from comparison.`);
     if (focus) (boxBtn[selection[at]] ?? boxBtn[selection[at - 1]] ?? paletteBtn[id]).focus();
+  }
+
+  // Empties the box; every line fades out together. Focus (on the now-hidden button)
+  // moves to the first initiative in the palette.
+  function clearAll() {
+    if (!selection.length) return;
+    const hadFocus = document.activeElement === els.clear;
+    [...selection].forEach(id => remove(id, { announce: false }));
+    announce('Comparison cleared.');
+    if (hadFocus) paletteBtn[data.initiatives[0].id].focus();
   }
 
   // A palette pill whose initiative is in the box becomes a same-width ghost slot.
@@ -319,6 +327,7 @@
     const empty = !selection.length;
     const over = els.box.classList.contains('is-over');
     els.box.classList.toggle('is-empty', empty);
+    els.clear.hidden = empty;
     els.hint.textContent = over ? 'Drop to add' : empty ? 'Drag initiatives here' : 'Drag more here, or drag out to remove';
   }
 
