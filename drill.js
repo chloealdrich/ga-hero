@@ -3,8 +3,8 @@
  *
  * Opens from a sector circle in Section 2 without touching Section 2's code: a
  * click listener on Section 2's root reacts to its existing sector buttons.
- * Renders inside Section 2's 1440 × 900 stage and reuses its logo, nav, View
- * toggle (the shared full/split setting) and source line.
+ * Renders inside Section 2's 1440 × 900 stage and reuses its logo, nav and View
+ * toggle (the shared full/split setting).
  *
  * Routes:
  *   #sector/<id>            framework overview        (D1 full / D4 split)
@@ -65,7 +65,7 @@
   const EASE = 'cubic-bezier(.2,.8,.2,1)';
   const EASE_IN = 'cubic-bezier(.4,0,1,1)';
   const EASE_IN_OUT = 'cubic-bezier(.6,0,.2,1)';
-  // Section 2's own content (not its logo, nav, View toggle or source) that steps aside.
+  // Section 2's own content (not its logo, nav or View toggle) that steps aside.
   const SECTION2_PARTS = '.sector__intro, .sector__legend, .sector__split-header, .sector__divider, .year-slider, .sector__play, .sector-card';
 
   // Donut geometry per spec.
@@ -489,7 +489,7 @@
   // In: the clicked bubble's highlight disc grows from the bubble until it fills the
   // stage while the chart scales up and fades; the drill-down fades in over the tint,
   // then the tint clears. Out: the reverse, shrinking back into the same bubble.
-  // Section 2's logo, nav, View toggle and source stay on top throughout (drill.css).
+  // Section 2's logo, nav and View toggle stay on top throughout (drill.css).
 
   function bubbleOrigin(btn) {
     const stage = sectorRoot.querySelector('[data-sector-stage]').getBoundingClientRect();

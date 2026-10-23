@@ -1,8 +1,8 @@
 /* Section 3: sector drill-down. Renders inside Section 2's stage (drill.js) and
    uses the tokens defined in hero.css. Geometry follows the D1–D6 frames. */
 
-/* While a sector is open, Section 2 keeps its logo, nav, View toggle and source
-   line; everything else in its stage steps aside. Nothing in Section 2's files changes. */
+/* While a sector is open, Section 2 keeps its logo, nav and View toggle; everything
+   else in its stage steps aside. Nothing in Section 2's files changes. */
 .sector.is-drilling .sector__intro,
 .sector.is-drilling .sector__legend,
 .sector.is-drilling .sector__split-header,
@@ -41,12 +41,11 @@
   will-change: transform, opacity;
 }
 /* During the zoom the drill layer sits over the chart, and the shared header
-   (logo, nav, View toggle, source) stays on top of both. */
+   (logo, nav, View toggle) stays on top of both. */
 .sector.is-zooming .drill { z-index: 2; }
 .sector.is-zooming .sector__logo,
 .sector.is-zooming .site-nav,
-.sector.is-zooming .sector__view,
-.sector.is-zooming .sector__source { z-index: 3; }
+.sector.is-zooming .sector__view { z-index: 3; }
 
 .drill-abs { position: absolute; }
 

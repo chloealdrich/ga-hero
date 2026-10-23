@@ -1,0 +1,522 @@
+{
+ "title": "Frameworks by sector, 2025",
+ "year": 2025,
+ "source": "Governance & Accountability Institute, Inc. 2026",
+ "notes": [
+  "All values are shares (0-1); display as whole percentages (Math.round(v*100)).",
+  "sectors[].values: share of the sector's companies aligned with each framework, in frameworks[] order. From the 2025 data workbook (one sheet per group).",
+  "overall: share of all companies in the group aligned with each framework, in frameworks[] order. Client-supplied published figures; do not recompute from sector values.",
+  "sector ids and icon names match the existing sector data file."
+ ],
+ "frameworks": [
+  {
+   "key": "gri",
+   "label": "GRI",
+   "color": "#9755f6",
+   "textColor": "#854bd8"
+  },
+  {
+   "key": "sasb",
+   "label": "SASB",
+   "color": "#d43b2a",
+   "textColor": "#c33627"
+  },
+  {
+   "key": "tcfd",
+   "label": "TCFD",
+   "color": "#55b0d2",
+   "textColor": "#38748b"
+  },
+  {
+   "key": "issb",
+   "label": "ISSB",
+   "color": "#ee8031",
+   "textColor": "#a75a22"
+  },
+  {
+   "key": "esrs",
+   "label": "ESRS",
+   "color": "#e131af",
+   "textColor": "#bd2993"
+  },
+  {
+   "key": "tnfd",
+   "label": "TNFD",
+   "color": "#5fcfa4",
+   "textColor": "#397c62"
+  }
+ ],
+ "groups": {
+  "russell1000": {
+   "label": "Russell 1000",
+   "centerCaption": "of all Russell 1000 companies aligned with {framework}",
+   "overall": [
+    0.57,
+    0.79,
+    0.64,
+    0.05,
+    0.01,
+    0.02
+   ],
+   "sectors": [
+    {
+     "id": "communications",
+     "name": "Communications",
+     "icon": "broadcast",
+     "values": [
+      0.37,
+      0.78,
+      0.52,
+      0,
+      0.04,
+      0
+     ]
+    },
+    {
+     "id": "consumer-discretionary",
+     "name": "Consumer Discretionary",
+     "icon": "shopping-bag",
+     "values": [
+      0.51,
+      0.75,
+      0.56,
+      0.04,
+      0.03,
+      0.01
+     ]
+    },
+    {
+     "id": "consumer-staples",
+     "name": "Consumer Staples",
+     "icon": "bread",
+     "values": [
+      0.52,
+      0.78,
+      0.62,
+      0.02,
+      0.04,
+      0.06
+     ]
+    },
+    {
+     "id": "energy",
+     "name": "Energy",
+     "icon": "lightning",
+     "values": [
+      0.71,
+      0.89,
+      0.91,
+      0.06,
+      0,
+      0.03
+     ]
+    },
+    {
+     "id": "financials",
+     "name": "Financials",
+     "icon": "money",
+     "values": [
+      0.4,
+      0.72,
+      0.69,
+      0.04,
+      0.02,
+      0.02
+     ]
+    },
+    {
+     "id": "health-care",
+     "name": "Health Care",
+     "icon": "heartbeat",
+     "values": [
+      0.47,
+      0.81,
+      0.62,
+      0.05,
+      0.01,
+      0
+     ]
+    },
+    {
+     "id": "industrials",
+     "name": "Industrials",
+     "icon": "factory",
+     "values": [
+      0.57,
+      0.82,
+      0.6,
+      0.06,
+      0.01,
+      0.01
+     ]
+    },
+    {
+     "id": "information-technology",
+     "name": "Information Technology",
+     "icon": "cpu",
+     "values": [
+      0.62,
+      0.75,
+      0.57,
+      0.04,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "materials",
+     "name": "Materials",
+     "icon": "cube",
+     "values": [
+      0.8,
+      0.83,
+      0.8,
+      0.04,
+      0,
+      0.13
+     ]
+    },
+    {
+     "id": "real-estate",
+     "name": "Real Estate",
+     "icon": "buildings",
+     "values": [
+      0.81,
+      0.71,
+      0.71,
+      0.1,
+      0.02,
+      0.02
+     ]
+    },
+    {
+     "id": "utilities",
+     "name": "Utilities",
+     "icon": "plug",
+     "values": [
+      0.75,
+      0.97,
+      0.58,
+      0.06,
+      0.03,
+      0
+     ]
+    }
+   ]
+  },
+  "sp500": {
+   "label": "S&P 500",
+   "centerCaption": "of S&P 500 companies aligned with {framework}",
+   "overall": [
+    0.66,
+    0.83,
+    0.7,
+    0.06,
+    0.01,
+    0.03
+   ],
+   "sectors": [
+    {
+     "id": "communications",
+     "name": "Communications",
+     "icon": "broadcast",
+     "values": [
+      0.38,
+      0.88,
+      0.69,
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "consumer-discretionary",
+     "name": "Consumer Discretionary",
+     "icon": "shopping-bag",
+     "values": [
+      0.6,
+      0.79,
+      0.62,
+      0.07,
+      0.07,
+      0.02
+     ]
+    },
+    {
+     "id": "consumer-staples",
+     "name": "Consumer Staples",
+     "icon": "bread",
+     "values": [
+      0.63,
+      0.84,
+      0.72,
+      0.03,
+      0,
+      0.09
+     ]
+    },
+    {
+     "id": "energy",
+     "name": "Energy",
+     "icon": "lightning",
+     "values": [
+      0.81,
+      0.9,
+      0.9,
+      0.1,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "financials",
+     "name": "Financials",
+     "icon": "money",
+     "values": [
+      0.49,
+      0.76,
+      0.76,
+      0.07,
+      0,
+      0.03
+     ]
+    },
+    {
+     "id": "health-care",
+     "name": "Health Care",
+     "icon": "heartbeat",
+     "values": [
+      0.56,
+      0.86,
+      0.69,
+      0.07,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "industrials",
+     "name": "Industrials",
+     "icon": "factory",
+     "values": [
+      0.63,
+      0.86,
+      0.62,
+      0.08,
+      0,
+      0.01
+     ]
+    },
+    {
+     "id": "information-technology",
+     "name": "Information Technology",
+     "icon": "cpu",
+     "values": [
+      0.7,
+      0.8,
+      0.66,
+      0.03,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "materials",
+     "name": "Materials",
+     "icon": "cube",
+     "values": [
+      0.92,
+      0.88,
+      0.85,
+      0.08,
+      0,
+      0.23
+     ]
+    },
+    {
+     "id": "real-estate",
+     "name": "Real Estate",
+     "icon": "buildings",
+     "values": [
+      0.97,
+      0.71,
+      0.77,
+      0.1,
+      0,
+      0.03
+     ]
+    },
+    {
+     "id": "utilities",
+     "name": "Utilities",
+     "icon": "plug",
+     "values": [
+      0.86,
+      1,
+      0.61,
+      0.04,
+      0,
+      0
+     ]
+    }
+   ]
+  },
+  "smallestHalf": {
+   "label": "Smallest Half",
+   "centerCaption": "of Smallest Half companies aligned with {framework}",
+   "overall": [
+    0.46,
+    0.73,
+    0.56,
+    0.03,
+    0.02,
+    0.01
+   ],
+   "sectors": [
+    {
+     "id": "communications",
+     "name": "Communications",
+     "icon": "broadcast",
+     "values": [
+      0.36,
+      0.64,
+      0.27,
+      0,
+      0.09,
+      0
+     ]
+    },
+    {
+     "id": "consumer-discretionary",
+     "name": "Consumer Discretionary",
+     "icon": "shopping-bag",
+     "values": [
+      0.45,
+      0.73,
+      0.52,
+      0.02,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "consumer-staples",
+     "name": "Consumer Staples",
+     "icon": "bread",
+     "values": [
+      0.33,
+      0.67,
+      0.44,
+      0,
+      0.11,
+      0
+     ]
+    },
+    {
+     "id": "energy",
+     "name": "Energy",
+     "icon": "lightning",
+     "values": [
+      0.57,
+      0.86,
+      0.93,
+      0,
+      0,
+      0.07
+     ]
+    },
+    {
+     "id": "financials",
+     "name": "Financials",
+     "icon": "money",
+     "values": [
+      0.28,
+      0.67,
+      0.6,
+      0,
+      0.02,
+      0
+     ]
+    },
+    {
+     "id": "health-care",
+     "name": "Health Care",
+     "icon": "heartbeat",
+     "values": [
+      0.31,
+      0.72,
+      0.47,
+      0.03,
+      0.03,
+      0
+     ]
+    },
+    {
+     "id": "industrials",
+     "name": "Industrials",
+     "icon": "factory",
+     "values": [
+      0.51,
+      0.78,
+      0.58,
+      0.05,
+      0.01,
+      0
+     ]
+    },
+    {
+     "id": "information-technology",
+     "name": "Information Technology",
+     "icon": "cpu",
+     "values": [
+      0.53,
+      0.69,
+      0.47,
+      0.05,
+      0,
+      0
+     ]
+    },
+    {
+     "id": "materials",
+     "name": "Materials",
+     "icon": "cube",
+     "values": [
+      0.68,
+      0.79,
+      0.75,
+      0,
+      0,
+      0.04
+     ]
+    },
+    {
+     "id": "real-estate",
+     "name": "Real Estate",
+     "icon": "buildings",
+     "values": [
+      0.64,
+      0.71,
+      0.64,
+      0.11,
+      0.04,
+      0
+     ]
+    },
+    {
+     "id": "utilities",
+     "name": "Utilities",
+     "icon": "plug",
+     "values": [
+      0.38,
+      0.88,
+      0.5,
+      0.13,
+      0.13,
+      0
+     ]
+    }
+   ]
+  }
+ }
+}

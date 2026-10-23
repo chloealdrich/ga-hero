@@ -514,15 +514,6 @@
 
 /* ---------- Footer ---------- */
 
-.sector__source {
-  position: absolute;
-  left: 48px;
-  bottom: 24px;
-  margin: 0;
-  font-size: 12px;
-  line-height: 16px;
-  color: var(--graphite);
-}
 
 .visually-hidden {
   position: absolute;

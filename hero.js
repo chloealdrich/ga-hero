@@ -69,7 +69,6 @@
   };
   const calloutYear = root.querySelector('[data-callout-year]');
   const calloutBlurb = root.querySelector('[data-callout-blurb]');
-  const sourceEl = root.querySelector('[data-source]');
   const cta = root.querySelector('[data-cta]');
   const CTA_HIDE_AFTER_PX = 2;
 
@@ -151,7 +150,6 @@
     data = d;
     [Y0, Y1] = data.years;
     brk = data.methodologyBreak;
-    sourceEl.textContent = `Source: ${data.source}`;
 
     buildStatic();
     buildDynamic();

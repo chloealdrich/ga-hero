@@ -276,7 +276,6 @@
       years.forEach(y => { layouts[g][y] = pack(g, y); });
     });
 
-    $('[data-sector-source]').textContent = `Source: ${data.source}`;
     $('[data-view-label="russell1000"]').textContent = data.groups[FULL].label;
 
     slider.min = years[0];
