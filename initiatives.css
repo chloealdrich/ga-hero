@@ -1,0 +1,340 @@
+/* Section 3, Initiatives (initiatives.js). Uses the tokens defined in hero.css;
+   geometry follows the I1–I5 frames. */
+
+.initiatives {
+  --sector-fill: #f4f4f4;   /* the group switch (.fw-groups) reads this; defined on .sector there */
+  --cdp-ink: #0a192a;
+
+  position: relative;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font);
+}
+
+/* The 1440 × 900 design frame, scaled to fit the viewport (--ini-scale). */
+.ini__stage {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1440px;
+  height: 900px;
+  transform: translate(-50%, -50%) scale(var(--ini-scale, 1));
+  transform-origin: center;
+}
+
+.ini-intro {
+  position: absolute;
+  left: 48px;
+  top: 160px;
+  width: 820px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.ini-intro h2 {
+  margin: 0;
+  font-size: 48px;
+  line-height: 56px;
+  font-weight: 300;
+  color: var(--anchor);
+}
+.ini-intro p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 24px;
+}
+
+/* ---------- Pills ---------- */
+
+.ini-palette {
+  position: absolute;
+  left: 48px;
+  top: 288px;
+  width: 400px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 12px;
+}
+.ini-slot { display: inline-flex; }
+
+.ini-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 26px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1.5px solid var(--c);
+  background: var(--tint);
+  color: var(--c);
+  font: inherit;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+/* 44px tall hit area around the 26px pill. */
+.ini-pill::before {
+  content: "";
+  position: absolute;
+  inset: -10.5px -1.5px;
+}
+.ini-pill:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; }
+
+.ini-pill--cdp {
+  padding: 0 12px 0 5px;
+  background: var(--sector-fill);
+}
+.ini-pill__disc {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--cdp-ink);
+  color: var(--white);
+}
+.ini-pill__x { display: flex; margin-left: 2px; }
+
+/* In the box: the palette slot keeps the pill's width as an empty grey placeholder. */
+.ini-pill.is-placed {
+  border-color: transparent;
+  background: var(--sector-fill);
+  color: transparent;
+  cursor: default;
+}
+.ini-pill.is-placed > * { visibility: hidden; }
+
+.ini-pill[aria-disabled="true"] {
+  opacity: .45;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+.ini-box .ini-pill[aria-disabled="true"] { cursor: pointer; }
+
+/* Being dragged: its box place empties and a tilted copy follows the pointer. */
+.ini-pill.is-lifted { visibility: hidden; }
+.ini-float {
+  position: absolute;
+  z-index: 5;
+  pointer-events: none;
+}
+.ini-pill.is-floating {
+  box-shadow: 0 1px 2px rgba(0, 24, 48, .12), 0 12px 32px rgba(0, 24, 48, .18);
+  transform: rotate(-3deg);
+  cursor: grabbing;
+  transition: transform var(--t-med) var(--ease), box-shadow var(--t-med) var(--ease);
+}
+.ini-float.is-returning .ini-pill { transform: none; box-shadow: none; }
+.ini__stage.is-dragging,
+.ini__stage.is-dragging .ini-pill { cursor: grabbing; }
+
+/* ---------- Comparison box ---------- */
+
+.ini-box {
+  position: absolute;
+  left: 48px;
+  top: 456px;
+  width: 400px;
+  height: 296px;      /* its bottom lines up with the chart's 0% line */
+  box-sizing: border-box;
+  border-radius: 16px;
+  border: 2px dotted var(--line);
+  background: var(--white);
+}
+.ini-box.is-over {
+  border: 2px dashed var(--clarity);
+  background: #f5f9fe;
+}
+.ini-box__pills {
+  position: absolute;
+  left: 18px;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.ini-box__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 16px;
+  text-align: center;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--graphite);
+  pointer-events: none;
+}
+.ini-box.is-empty .ini-box__hint {
+  bottom: auto;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.ini-box.is-over .ini-box__hint { color: var(--clarity); }
+
+.ini-note {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 44px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--graphite);
+}
+.ini-note[hidden] { display: none; }
+.ini-note svg { flex: none; }
+
+/* ---------- Chart ---------- */
+
+.ini-chart {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1440px;
+  height: 900px;
+  margin: 0;
+  pointer-events: none;   /* only the point hit targets take the pointer */
+  outline: none;          /* focus shows as .ini-ring around the plot */
+}
+.ini-chart svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+}
+.ini-ring {
+  display: none;
+  fill: none;
+  stroke: var(--anchor);
+  stroke-width: 3;
+}
+.ini-chart:focus-visible .ini-ring { display: inline; }
+
+.ini-grid line { stroke: var(--line); stroke-width: 1; }
+.ini-baseline { stroke: var(--graphite); stroke-width: 1; }
+.ini-axis {
+  font-family: var(--font);
+  font-size: 12px;
+  fill: var(--graphite);
+}
+.ini-axis text.is-current { opacity: 0; }   /* replaced by the .ini-year pill */
+
+.ini-series { transition: opacity var(--t-med) var(--ease); }
+.ini-series.is-hidden { opacity: 0; }
+.ini-chart.is-hovering .ini-series:not(.is-active):not(.is-hidden) { opacity: .3; }
+.ini-line {
+  fill: none;
+  stroke-width: 3;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+/* The clip that reveals a new line left to right (initiatives.js scales it from 0). */
+.ini-series clipPath rect { transform-box: fill-box; transform-origin: left; }
+
+.ini-hit {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.ini-guide {
+  display: none;
+  stroke: var(--anchor);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+.ini-big {
+  display: none;
+  stroke: var(--white);
+  stroke-width: 2.5;
+  pointer-events: none;
+}
+.ini-guide.is-on,
+.ini-big.is-on { display: inline; }
+
+/* The hovered year, as a pill (the Overview chart's current-year treatment). */
+.ini-year {
+  position: absolute;
+  top: 762px;
+  display: none;
+  transform: translateX(-50%);
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--clarity-10);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 700;
+  color: var(--anchor);
+  pointer-events: none;
+}
+.ini-year.is-on { display: block; }
+
+.ini-empty {
+  position: absolute;
+  left: 560px;
+  top: 504px;
+  width: 832px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--graphite);
+}
+.ini-empty[hidden] { display: none; }
+
+/* Hover box: Section 2's hover-card shell (.sector-card). */
+.sector-card.ini-tip {
+  width: 220px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  z-index: 4;
+}
+.ini-tip__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.ini-tip__dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+.ini-tip__value {
+  font-size: 28px;
+  line-height: 32px;
+  font-weight: 400;
+  color: var(--anchor);
+  font-variant-numeric: tabular-nums;
+}
+.ini-tip__caption {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--graphite);
+}
+
+/* Reduced motion: no tilt, no transitions. */
+@media (prefers-reduced-motion: reduce) {
+  .initiatives * { transition: none !important; }
+  .ini-pill.is-floating { transform: none; }
+}

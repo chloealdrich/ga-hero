@@ -1,0 +1,466 @@
+{
+ "title": "Reporting initiatives over time, 2019-2025",
+ "source": "Governance & Accountability Institute, Inc. 2026",
+ "notes": [
+  "Values are shares (0-1) of the group's companies. Display as whole percentages; values between 0 and 1% show one decimal (0.002 -> 0.2%).",
+  "null = no data for that year (initiative not tracked yet). Start the line at the first non-null year; never plot null as 0. A 0 value is real data.",
+  "SDGs have no market-cap split data: sp500 and smallestHalf SDG series are all null.",
+  "Smallest Half values come from the workbook tab named 'Sheet3'.",
+  "Years run 2019-2025. Palette order = initiatives[] order."
+ ],
+ "years": [
+  2019,
+  2020,
+  2021,
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "initiatives": [
+  {
+   "id": "gri",
+   "label": "GRI",
+   "color": "#9755f6",
+   "style": "framework",
+   "icon": null,
+   "iconWeight": null
+  },
+  {
+   "id": "tcfd",
+   "label": "TCFD",
+   "color": "#55b0d2",
+   "style": "framework",
+   "icon": null,
+   "iconWeight": null
+  },
+  {
+   "id": "sasb",
+   "label": "SASB",
+   "color": "#d43b2a",
+   "style": "framework",
+   "icon": null,
+   "iconWeight": null
+  },
+  {
+   "id": "issb",
+   "label": "ISSB",
+   "color": "#ee8031",
+   "style": "framework",
+   "icon": null,
+   "iconWeight": null
+  },
+  {
+   "id": "esrs",
+   "label": "ESRS",
+   "color": "#e131af",
+   "style": "framework",
+   "icon": null,
+   "iconWeight": null
+  },
+  {
+   "id": "sbti",
+   "label": "SBTi (Near- and Long-term)",
+   "color": "#5e2b7e",
+   "style": "framework",
+   "icon": null,
+   "iconWeight": null
+  },
+  {
+   "id": "tnfd",
+   "label": "TNFD",
+   "color": "#5fcfa4",
+   "style": "framework",
+   "icon": null,
+   "iconWeight": null
+  },
+  {
+   "id": "cdp-climate",
+   "label": "CDP Climate Change",
+   "color": "#0a192a",
+   "style": "cdp",
+   "icon": "leaf",
+   "iconWeight": "fill"
+  },
+  {
+   "id": "cdp-forests",
+   "label": "CDP Forests",
+   "color": "#0a192a",
+   "style": "cdp",
+   "icon": "tree",
+   "iconWeight": "fill"
+  },
+  {
+   "id": "cdp-water",
+   "label": "CDP Water Security",
+   "color": "#0a192a",
+   "style": "cdp",
+   "icon": "waves",
+   "iconWeight": "regular"
+  },
+  {
+   "id": "sdgs",
+   "label": "SDGs",
+   "color": "#4aa4da",
+   "style": "framework",
+   "icon": null,
+   "iconWeight": null
+  },
+  {
+   "id": "external-assurance",
+   "label": "External Assurance",
+   "color": "#c7863c",
+   "style": "framework",
+   "icon": null,
+   "iconWeight": null
+  }
+ ],
+ "groups": {
+  "russell1000": {
+   "label": "Russell 1000",
+   "caption": "of Russell 1000 companies",
+   "series": {
+    "gri": [
+     0.47,
+     0.52,
+     0.54,
+     0.54,
+     0.55,
+     0.54,
+     0.57
+    ],
+    "tcfd": [
+     0.04,
+     0.17,
+     0.34,
+     0.5,
+     0.6,
+     0.65,
+     0.64
+    ],
+    "sasb": [
+     0.12,
+     0.39,
+     0.67,
+     0.78,
+     0.81,
+     0.8,
+     0.79
+    ],
+    "issb": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     0.01,
+     0.05
+    ],
+    "esrs": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     0.01,
+     0.01
+    ],
+    "sbti": [
+     null,
+     0.03,
+     0.07,
+     0.12,
+     0.16,
+     0.27,
+     0.35
+    ],
+    "tnfd": [
+     null,
+     null,
+     null,
+     null,
+     0,
+     0.01,
+     0.02
+    ],
+    "cdp-climate": [
+     null,
+     0.56,
+     0.54,
+     0.59,
+     0.61,
+     0.62,
+     0.54
+    ],
+    "cdp-forests": [
+     null,
+     0.05,
+     0.03,
+     0.04,
+     0.03,
+     0.08,
+     0.07
+    ],
+    "cdp-water": [
+     null,
+     0.22,
+     0.13,
+     0.06,
+     0.07,
+     0.29,
+     0.33
+    ],
+    "sdgs": [
+     0.32,
+     0.42,
+     0.49,
+     0.52,
+     0.56,
+     0.58,
+     0.5
+    ],
+    "external-assurance": [
+     0.24,
+     0.35,
+     0.36,
+     0.4,
+     0.48,
+     0.51,
+     0.54
+    ]
+   }
+  },
+  "sp500": {
+   "label": "S&P 500",
+   "caption": "of S&P 500 companies",
+   "series": {
+    "gri": [
+     0.51,
+     0.6,
+     0.63,
+     0.66,
+     0.66,
+     0.64,
+     0.66
+    ],
+    "tcfd": [
+     0.05,
+     0.23,
+     0.44,
+     0.65,
+     0.72,
+     0.75,
+     0.7
+    ],
+    "sasb": [
+     0.14,
+     0.45,
+     0.76,
+     0.88,
+     0.89,
+     0.86,
+     0.83
+    ],
+    "issb": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     0.01,
+     0.06
+    ],
+    "esrs": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     0.01,
+     0.01
+    ],
+    "sbti": [
+     null,
+     0.03,
+     0.11,
+     0.16,
+     0.22,
+     0.36,
+     0.45
+    ],
+    "tnfd": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     0.02,
+     0.03
+    ],
+    "cdp-climate": [
+     null,
+     0.71,
+     0.72,
+     0.76,
+     0.75,
+     0.72,
+     0.58
+    ],
+    "cdp-forests": [
+     null,
+     0.06,
+     0.03,
+     0.05,
+     0.04,
+     0.1,
+     0.09
+    ],
+    "cdp-water": [
+     null,
+     0.29,
+     0.19,
+     0.09,
+     0.1,
+     0.32,
+     0.37
+    ],
+    "sdgs": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "external-assurance": [
+     0.29,
+     0.44,
+     0.49,
+     0.57,
+     0.66,
+     0.67,
+     0.68
+    ]
+   }
+  },
+  "smallestHalf": {
+   "label": "Smallest Half",
+   "caption": "of Smallest Half companies",
+   "series": {
+    "gri": [
+     0.39,
+     0.39,
+     0.42,
+     0.4,
+     0.42,
+     0.43,
+     0.46
+    ],
+    "tcfd": [
+     0.02,
+     0.07,
+     0.2,
+     0.32,
+     0.46,
+     0.52,
+     0.56
+    ],
+    "sasb": [
+     0.06,
+     0.28,
+     0.54,
+     0.67,
+     0.72,
+     0.73,
+     0.73
+    ],
+    "issb": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     0.02,
+     0.03
+    ],
+    "esrs": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     0.002,
+     0.02
+    ],
+    "sbti": [
+     null,
+     0.01,
+     0.03,
+     0.06,
+     0.09,
+     0.17,
+     0.22
+    ],
+    "tnfd": [
+     null,
+     null,
+     null,
+     null,
+     0,
+     0.01,
+     0.01
+    ],
+    "cdp-climate": [
+     null,
+     0.29,
+     0.3,
+     0.39,
+     0.45,
+     0.51,
+     0.48
+    ],
+    "cdp-forests": [
+     null,
+     0.02,
+     0.02,
+     0.03,
+     0.01,
+     0.06,
+     0.07
+    ],
+    "cdp-water": [
+     null,
+     0.09,
+     0.05,
+     0.05,
+     0.03,
+     0.25,
+     0.31
+    ],
+    "sdgs": [
+     null,
+     null,
+     null,
+     null,
+     null,
+     null,
+     null
+    ],
+    "external-assurance": [
+     0.12,
+     0.18,
+     0.18,
+     0.21,
+     0.27,
+     0.32,
+     0.38
+    ]
+   }
+  }
+ },
+ "defaultSelection": [
+  "gri"
+ ],
+ "defaultGroup": "russell1000"
+}
