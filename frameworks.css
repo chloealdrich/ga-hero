@@ -37,8 +37,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 44px;      /* still a full 44px touch target */
+  height: 44px;
   border-radius: 999px;
   background: var(--clarity);
   color: var(--white);

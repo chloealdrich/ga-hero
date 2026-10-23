@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="nav.css">
 <link rel="stylesheet" href="drill.css">
 <link rel="stylesheet" href="frameworks.css">
+<link rel="stylesheet" href="segmented.css">
 </head>
 <body>
 
@@ -80,7 +81,7 @@
 
     <fieldset class="sector__view">
       <legend>View</legend>
-      <div class="sector__view-options">
+      <div class="sector__view-options" data-segmented>
         <label><input type="radio" name="sector-view" value="full" checked><span data-view-label="russell1000"></span></label>
         <label><input type="radio" name="sector-view" value="split">Split By Market Cap</label>
       </div>
@@ -126,6 +127,7 @@
 </section>
 
 <script src="hero.js" defer></script>
+<script src="segmented.js" defer></script>
 <script src="sector-icons.js" defer></script>
 <script src="sector.js" defer></script>
 <script src="drill.js" defer></script>

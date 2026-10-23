@@ -134,7 +134,7 @@
     explore = document.createElement('a');
     explore.className = 'fw-round-link fw-explore';
     explore.href = ROUTE;
-    explore.innerHTML = `<span class="fw-round" aria-hidden="true">${icon(ICON.forward, 24)}</span>` +
+    explore.innerHTML = `<span class="fw-round" aria-hidden="true">${icon(ICON.forward, 20)}</span>` +
       '<span class="fw-round-link__label">Explore More</span>' +
       '<span class="fw-round-link__sub">Frameworks by sector</span>';
     stage.appendChild(explore);
@@ -158,6 +158,7 @@
     };
     buildFan();
     wire();
+    window.segmented?.(host.querySelector('.fw-groups'));   // sliding pill, shared with the View toggle
 
     window.addEventListener('hashchange', route);
     route();
@@ -185,7 +186,7 @@
       '<g class="fw-stems"></g><g class="fw-icons" aria-hidden="true"></g></svg>' +
       '<div class="fw-center" aria-hidden="true"><span class="fw-center__value"></span><span class="fw-center__caption"></span></div>' +
       '</figure>' +
-      `<a class="fw-round-link fw-back" href="#sector"><span class="fw-round" aria-hidden="true">${icon(ICON.back, 24)}</span>` +
+      `<a class="fw-round-link fw-back" href="#sector"><span class="fw-round" aria-hidden="true">${icon(ICON.back, 20)}</span>` +
       '<span class="fw-round-link__label">Back to<br>Reporting</span></a>' +
       '<div class="sector-card fw-tip" role="tooltip" id="fw-tip"></div>' +
       '<span class="visually-hidden" aria-live="polite" data-fw-live></span>';
