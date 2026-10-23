@@ -30,6 +30,7 @@
   const CROP = { left: 8, top: 120, right: 1432, bottom: 889 };
   const CROP_W = CROP.right - CROP.left;
   const CROP_H = CROP.bottom - CROP.top;
+  const CONTENT_BOTTOM = 849;     // lowest content in any stage (the frameworks fan)
 
   window.layoutWindow = () => {
     const r = frame.getBoundingClientRect();
@@ -42,8 +43,13 @@
     const { width, height } = window.layoutWindow();
     const scale = Math.min(width / STAGE_W, height / STAGE_H);
     fitStages.forEach(s => s.style.setProperty('--fit-scale', scale));
-    const dy = ((CROP.top + CROP.bottom) / 2 - STAGE_H / 2) * scale;
+    // Centre the content box on the window, which sits higher than the viewport's middle.
+    const r = frame.getBoundingClientRect();
+    const dy = ((CROP.top + CROP.bottom) / 2 - STAGE_H / 2) * scale + (window.innerHeight / 2 - (r.top + r.height / 2));
     document.documentElement.style.setProperty('--stage-dy', `${dy}px`);
+    // The next-section floater centres halfway between the content's bottom and the page's.
+    const contentBottom = r.top + r.height / 2 + (CONTENT_BOTTOM - (CROP.top + CROP.bottom) / 2) * scale;
+    document.documentElement.style.setProperty('--next-mid', `${(contentBottom + window.innerHeight) / 2}px`);
   }
 
   // ---- Route ----

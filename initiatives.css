@@ -177,6 +177,8 @@
   color: var(--graphite);
   pointer-events: none;
 }
+/* With pills in the box the hint moves up, making room for Clear all beneath it. */
+.ini-box:not(.is-empty) .ini-box__hint { bottom: 40px; }
 .ini-box.is-empty .ini-box__hint {
   bottom: auto;
   top: 50%;
@@ -184,11 +186,12 @@
 }
 .ini-box.is-over .ini-box__hint { color: var(--clarity); }
 
+/* SDG availability note: below the box, from its left edge. */
 .ini-note {
   position: absolute;
-  left: 20px;
-  right: 20px;
-  bottom: 44px;
+  left: 48px;
+  top: 768px;
+  width: 400px;
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -199,13 +202,14 @@
 .ini-note[hidden] { display: none; }
 .ini-note svg { flex: none; }
 
-/* Clear all: a text button under the box's right edge, 44px tall to touch. */
+/* Clear all: a text button centred in the box under the hint (32px tall to touch). */
 .ini-clear {
   position: absolute;
-  right: calc(1440px - 448px);
-  top: 752px;
-  min-height: 44px;
-  padding: 0 4px;
+  left: 50%;
+  bottom: 6px;
+  min-height: 32px;
+  padding: 0 8px;
+  transform: translateX(-50%);
   border: 0;
   border-radius: 8px;
   background: none;

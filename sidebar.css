@@ -1,17 +1,26 @@
-/* Page frame: a fixed navy surround with a rounded content window, the sidebar route
-   beside it, and one vertical scroll of sections behind the window (sidebar.js).
-   Uses the tokens defined in hero.css; proportions follow the sidebar mockup. */
+/* Page frame: a fixed content window beside the sidebar card, with one vertical scroll
+   of sections behind it (sidebar.js). Outside the window the page is plain white, so
+   sections show only inside it. Uses the tokens defined in hero.css; sizes and colours
+   follow the light sidebar mockup at 1440 wide. */
 
 :root {
-  --navy: #071c35;   /* sampled from the sidebar mockup */
-  --win-top: max(24px, 6vh);
-  --win-bottom: var(--win-top);           /* equal, so each stage centres in the window */
-  --win-left: clamp(220px, 16.25vw, 340px);
+  --side-x: 35px;                 /* sidebar card's left edge */
+  --side-w: 249px;
+  --win-top: 30px;                /* the window starts level with the card */
+  --win-left: calc(var(--side-x) + var(--side-w) + 24px);
   --win-right: max(24px, 2.75vw);
+  --win-bottom: 72px;             /* room for the next-section floater below the window */
   --win-radius: 20px;
+
+  /* Sidebar card (sampled from the mockup) */
+  --side-bg: #f8fafb;
+  --side-border: #eceef0;
+  --side-faint-text: #c4c7ca;
+  --side-faint-dot: #cdd8e8;
+  --side-faint-line: #dde4ee;
 }
 
-body { background: var(--navy); }
+body { background: var(--white); }
 
 /* Sections fill the window's width; each scales its 1440 × 900 stage to the window. */
 .page {
@@ -27,7 +36,7 @@ body { background: var(--navy); }
   left: var(--win-left);
   z-index: 10;
   border-radius: var(--win-radius);
-  box-shadow: 0 0 0 100vmax var(--navy);   /* everything outside the opening */
+  box-shadow: 0 0 0 100vmax var(--white);  /* everything outside the opening */
   pointer-events: none;
 }
 
@@ -36,25 +45,33 @@ body { background: var(--navy); }
 
 /* ---------- Sidebar ---------- */
 
+/* A light card that grows and shrinks with the sub-lists it unfurls. */
 .side {
   position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
+  top: var(--win-top);
+  left: var(--side-x);
   z-index: 11;
-  width: var(--win-left);
+  width: var(--side-w);
+  max-height: calc(100vh - var(--win-top) - 16px);
   box-sizing: border-box;
-  padding: calc(var(--win-top) + 5px) 20px 24px 41px;
+  padding: 25px 20px 26px 28px;
+  overflow-x: hidden;     /* the logo's transparent padding overhangs the content box */
   overflow-y: auto;
-  color: var(--white);
+  border: 1px solid var(--side-border);
+  border-radius: 12px;
+  background: var(--side-bg);
+  color: var(--ink);
   font-family: var(--font);
 }
+/* The SVG has padding round the mark: at 218px the visible mark is 182px wide, so the
+   negative margins line the mark up with the mockup (and the list beneath it). */
 .side__logo {
   display: block;
-  width: 169px;
+  width: 218px;
   height: auto;
-  margin: 0 0 25px;
+  margin: -12px 0 12px -16px;
 }
+.side__list { margin-left: 16px !important; }
 
 .side ol {
   margin: 0;
@@ -71,18 +88,17 @@ body { background: var(--navy); }
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  color: var(--white);
+  gap: 9px;
+  color: var(--side-faint-text);     /* not reached yet */
   text-decoration: none;
-  opacity: .4;                       /* not reached yet */
-  transition: opacity var(--t-med) var(--ease);
+  transition: color var(--t-med) var(--ease);
 }
-.side a.is-reached { opacity: 1; }
-.side a:hover { opacity: 1; }
-.side a:focus-visible { outline: 3px solid var(--white); outline-offset: 2px; border-radius: 4px; }
+.side a.is-reached { color: #000; }
+.side a:hover { color: var(--ink); }
+.side a:focus-visible { outline: 3px solid var(--anchor); outline-offset: 2px; border-radius: 4px; }
 
 .side__list > li > a {
-  min-height: 30px;
+  min-height: 29px;
   font-size: 16px;
   line-height: 22px;
   font-weight: 500;
@@ -92,7 +108,7 @@ body { background: var(--navy); }
 .side .side__sub {
   height: 0;
   margin: 0;
-  padding-left: 18px;
+  padding-left: 17.5px;
   overflow: hidden;
   opacity: 0;
   transition:
@@ -101,44 +117,45 @@ body { background: var(--navy); }
     opacity var(--t-med) var(--ease);
 }
 .side .side__sub.is-open {
-  margin: 2px 0 5px;
+  margin: 3.5px 0 6px;
   opacity: 1;
 }
 .side__sub a {
   --dot: 5px;
-  gap: 10px;
-  min-height: 17.5px;
+  gap: 8.5px;
+  min-height: 17.4px;
   font-size: 12px;
   line-height: 16px;
   font-weight: 500;
 }
 .side__sub a.is-current { font-weight: 700; }
 
-/* Dots: hollow until reached, then filled. */
+/* Dots: pale hollow rings until reached, then filled Clarity blue. */
 .side__dot {
   flex: none;
   width: var(--dot);
   height: var(--dot);
   box-sizing: border-box;
   border-radius: 999px;
-  border: 1.5px solid currentColor;
-  transition: background-color var(--t-med) var(--ease);
+  border: 1.5px solid var(--side-faint-dot);
+  background: var(--side-bg);
+  transition: background-color var(--t-med) var(--ease), border-color var(--t-med) var(--ease);
 }
-.side a.is-reached .side__dot { background: currentColor; }
+.side a.is-reached .side__dot { border-color: var(--clarity); background: var(--clarity); }
 
 /* Route lines: dot to next dot in the same list. The track is dim; the fill grows
    as the section above it is scrolled through (--fill, 0–1, from sidebar.js). */
 .side__line {
   position: absolute;
   width: 1.5px;          /* left, top and height from sidebar.js (LINE_W) */
-  background: rgba(255, 255, 255, .4);
+  background: var(--side-faint-line);
   pointer-events: none;
 }
 .side__line::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: var(--white);
+  background: var(--clarity);
   transform: scaleY(var(--fill, 0));
   transform-origin: top;
 }
@@ -156,8 +173,9 @@ body { background: var(--navy); }
   position: fixed;
   left: var(--win-left);
   right: var(--win-right);
-  bottom: calc(var(--win-bottom) + 14px);
+  top: var(--next-mid, calc(100vh - 36px));   /* halfway between the content and the page bottom (sidebar.js) */
   z-index: 11;
+  transform: translateY(-50%);
   display: flex;
   justify-content: center;
   pointer-events: none;

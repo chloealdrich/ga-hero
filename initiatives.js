@@ -166,16 +166,18 @@
     box.setAttribute('role', 'group');
     box.setAttribute('aria-label', 'Comparison: drop initiatives here');
     els.boxPills = el('div', 'ini-box__pills', box);
-    const note = els.note = el('div', 'ini-note', box);
-    note.setAttribute('role', 'note');
-    note.innerHTML = `${icon('info', 16)}<span>SDG data isn’t available by market cap. Switch to Russell 1000 to plot it.</span>`;
     els.hint = el('span', 'ini-box__hint', box);
 
-    // Clear all: under the box's right edge, shown while the box has pills.
-    const clear = els.clear = el('button', 'ini-clear', stage);
+    // Clear all: inside the box, under the hint, shown while the box has pills.
+    const clear = els.clear = el('button', 'ini-clear', box);
     clear.type = 'button';
     clear.textContent = 'Clear all';
     clear.addEventListener('click', clearAll);
+
+    // SDG availability note: outside the box, under its left edge.
+    const note = els.note = el('div', 'ini-note', stage);
+    note.setAttribute('role', 'note');
+    note.innerHTML = `${icon('info', 16)}<span>SDG data isn’t available by market cap. Switch to Russell 1000 to plot it.</span>`;
 
     // Chart.
     const fig = els.fig = el('figure', 'ini-chart', stage);

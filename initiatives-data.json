@@ -459,8 +459,6 @@
    }
   }
  },
- "defaultSelection": [
-  "gri"
- ],
+ "defaultSelection": [],
  "defaultGroup": "russell1000"
 }
